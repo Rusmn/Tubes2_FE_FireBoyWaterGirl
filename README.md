@@ -4,7 +4,7 @@
 
 1. Clone repo ini:
    ```bash
-   git clone <URL-REPO-ANDA>
+   git clone https://github.com/Rusmn/Tubes2_FE_FireBoyWaterGirl.git
    cd frontend
    ```
 
