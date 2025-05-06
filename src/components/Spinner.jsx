@@ -2,9 +2,9 @@ import React from 'react';
 
 function Spinner() {
   return (
-    <div className="flex justify-center items-center p-4">
-      <div className="border-t-4 border-blue-500 border-solid rounded-full w-10 h-10 animate-spin"></div>
-      <span className="ml-3">Mencari resep...</span>
+    <div className="flex flex-col items-center justify-center p-8">
+      <div aria-label="Loading" role="status" className="w-12 h-12 border-4 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+      <p className="mt-4 text-gray-600">Mencari recipe elemen...</p>
     </div>
   );
 }
