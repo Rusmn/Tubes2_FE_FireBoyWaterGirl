@@ -7,9 +7,11 @@ import SearchHistory from './components/SearchHistory';
 import Spinner from './components/Spinner';
 import Book from './components/Book'; 
 import './index.css';
+// import RecipeGraph from './components/RecipeGraph';
 
 // Lazy load the RecipeTree component for better performance
 const RecipeTree = lazy(() => import('./components/RecipeTree'));
+const RecipeGraph = lazy(() => import('./components/RecipeGraph'));
 
 function App() {
 	const [viewMode, setViewMode] = useState('form');
@@ -91,9 +93,15 @@ function App() {
 		setTimeout(() => {
 			setLoading(false);
 			setSearchResults({
-				recipes: [],
-				stats: { time: 120, nodesVisited: 42 }
-			});
+				combos: [
+					{ id: 0, inputs: ['Mud','Fire'],      output: 'Brick'  },
+					{ id: 1, inputs: ['Clay','Stone'],     output: 'Brick'  },
+					{ id: 2, inputs: ['Lava','Air'],       output: 'Stone'  },
+					{ id: 3, inputs: ['Earth','Pressure'], output: 'Stone'  },
+					{ id: 4, inputs: ['Fire','Earth'],     output: 'Lava'   },
+				  ],
+				  stats: { time: 120, nodesVisited: 42 }
+			  });
 			
 			// Switch to results view if not in split mode
 			if (viewMode !== 'split') {
@@ -128,12 +136,11 @@ function App() {
 					<SearchMetadata searchParams={currentSearch} />
 					
 					<Suspense fallback={<div className="p-8 text-center">Loading visualizer...</div>}>
-						{/* Placeholder for RecipeTree */}
-						<div className="border p-4 rounded bg-gray-50 text-center mb-4 min-h-[300px] flex items-center justify-center">
-							<p className="text-gray-500">
-								Visualisasi recipe tree akan ditampilkan di sini
-							</p>
-						</div>
+						{/*  Untuk testing: kita beri stub array of paths. Nanti kalau API sudah siap, ganti props `recipes` dengan searchResults.recipesh */}
+						<RecipeGraph
+							combos={searchResults.combos}
+							target={currentSearch.targetElement}
+						/>
 					</Suspense>
 					
 					{/* Statistics */}
