@@ -7,6 +7,7 @@ import SearchHistory from './components/SearchHistory';
 import Spinner from './components/Spinner';
 import Book from './components/Book'; 
 import './index.css';
+// import RecipeGraph from './components/RecipeGraph';
 
 const RecipeTree = lazy(() => import('./components/RecipeTree'));
 // Atau ganti ke RecipeGraph jika ingin gunakan versi graph
