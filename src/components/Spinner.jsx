@@ -1,12 +1,20 @@
 import React from 'react';
 
-function Spinner() {
-	return (
-		<div className="flex flex-col items-center justify-center p-8">
-			<div aria-label="Loading" role="status" className="w-12 h-12 border-4 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
-			<p className="mt-4 text-gray-600">Mencari recipe elemen...</p>
-		</div>
-	);
+/**
+ * Komponen loading spinner
+ * @param {Object} props
+ * @param {string} props.message - Pesan yang ditampilkan di bawah spinner
+ */
+function Spinner({ message = 'Sedang memproses...' }) {
+  return (
+    <div className="flex flex-col items-center justify-center p-8">
+      {/* Spinner */}
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+      
+      {/* Message */}
+      <p className="text-gray-600">{message}</p>
+    </div>
+  );
 }
 
 export default Spinner;

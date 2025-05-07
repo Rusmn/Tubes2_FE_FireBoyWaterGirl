@@ -12,7 +12,7 @@ function Navbar({ viewMode, setViewMode, currentSearch }) {
 					aria-label="Beralih ke tampilan book"
 					aria-pressed={viewMode === 'book'}
 				>
-					Book
+					📖
 				</button>
 
 				<div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
