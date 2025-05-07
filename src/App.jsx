@@ -86,7 +86,7 @@ function App() {
 				item.algorithm !== formData.algorithm ||
 				item.isMultiple !== formData.isMultiple
 			);
-			return [formData, ...filtered.slice(0, 4)]; // Keep last 5 searches
+			return [formData, ...filtered.slice(0, 9)]; // Keep last 5 searches
 		});
 		
 		// Simulate API call
@@ -99,6 +99,8 @@ function App() {
 					{ id: 2, inputs: ['Lava','Air'],       output: 'Stone'  },
 					{ id: 3, inputs: ['Earth','Pressure'], output: 'Stone'  },
 					{ id: 4, inputs: ['Fire','Earth'],     output: 'Lava'   },
+					{ id: 5, inputs: ['Earth','Water'],     output: 'Mud'  },
+					{ id: 6, inputs: ['Earth','Water'],      output: 'Clay'  },
 				  ],
 				  stats: { time: 120, nodesVisited: 42 }
 			  });
@@ -129,7 +131,7 @@ function App() {
 				<Spinner />
 			) : searchResults && currentSearch ? (
 				<>
-					<h2 className="text-xl font-bold mb-4">
+					<h2 className="text-xl font-bold mb-4 overflow-x-auto">
 						Recipe untuk {currentSearch.targetElement}
 					</h2>
 					
