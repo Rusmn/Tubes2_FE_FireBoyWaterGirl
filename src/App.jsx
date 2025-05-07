@@ -3,9 +3,13 @@ import Navbar from './components/Navbar';
 import NavigationBreadcrumbs from './components/NavigationBreadcrumbs';
 import SearchForm from './components/SearchForm';
 import SearchMetadata from './components/SearchMetadata';
+import SearchStats from './components/SearchStats';
 import SearchHistory from './components/SearchHistory';
 import Spinner from './components/Spinner';
 import Book from './components/Book'; 
+import useRecipeSearch from './hooks/useRecipeSearch';
+// Komentar import di bawah jika useLiveUpdate.js belum dibuat
+// import useLiveUpdate from './hooks/useLiveUpdate';
 import './index.css';
 
 // Lazy load the RecipeTree component for better performance
@@ -13,10 +17,47 @@ const RecipeTree = lazy(() => import('./components/RecipeTree'));
 
 function App() {
 	const [viewMode, setViewMode] = useState('form');
-	const [loading, setLoading] = useState(false);
-	const [searchResults, setSearchResults] = useState(null);
-	const [currentSearch, setCurrentSearch] = useState(null);
 	const [searchHistory, setSearchHistory] = useState([]);
+	const [liveUpdateEnabled, setLiveUpdateEnabled] = useState(false);
+	
+	// Custom hooks untuk pencarian
+	const { 
+		loading, 
+		error, 
+		results, 
+		currentSearch, 
+		search, 
+		clearResults 
+	} = useRecipeSearch();
+	
+	// Mock untuk useLiveUpdate jika belum diimplementasikan
+	const { 
+		updateHistory, 
+		currentStep, 
+		isRunning,
+		setUpdateSpeed, 
+		stopLiveUpdate 
+	} = {
+		updateHistory: [],
+		currentStep: 0,
+		isRunning: false,
+		setUpdateSpeed: () => {},
+		stopLiveUpdate: () => {}
+	};
+	
+	/* Gunakan ini jika useLiveUpdate.js sudah dibuat
+	const { 
+		updateHistory, 
+		currentStep, 
+		isRunning,
+		setUpdateSpeed, 
+		stopLiveUpdate 
+	} = useLiveUpdate(
+		liveUpdateEnabled, 
+		currentSearch?.algorithm, 
+		currentSearch
+	);
+	*/
 
 	// Load search history from localStorage on initial render
 	useEffect(() => {
@@ -53,7 +94,7 @@ function App() {
 				setViewMode('form');
 			}
 			// Ctrl+R for results view (only if results exist)
-			else if (e.ctrlKey && e.key === 'r' && searchResults) {
+			else if (e.ctrlKey && e.key === 'r' && results) {
 				e.preventDefault();
 				setViewMode('results');
 			}
@@ -71,12 +112,9 @@ function App() {
 		
 		window.addEventListener('keydown', handleKeyDown);
 		return () => window.removeEventListener('keydown', handleKeyDown);
-	}, [searchResults]);
+	}, [results]);
 
 	const handleSearch = (formData) => {
-		setLoading(true);
-		setCurrentSearch(formData);
-		
 		// Add to search history, avoiding duplicates
 		setSearchHistory(prev => {
 			const filtered = prev.filter(item => 
@@ -87,19 +125,16 @@ function App() {
 			return [formData, ...filtered.slice(0, 4)]; // Keep last 5 searches
 		});
 		
-		// Simulate API call
-		setTimeout(() => {
-			setLoading(false);
-			setSearchResults({
-				recipes: [],
-				stats: { time: 120, nodesVisited: 42 }
-			});
-			
-			// Switch to results view if not in split mode
-			if (viewMode !== 'split') {
-				setViewMode('results');
-			}
-		}, 1500);
+		// Periksa apakah live update diaktifkan (bisa diabaikan jika belum diimplementasikan)
+		setLiveUpdateEnabled(formData.liveUpdate || false);
+		
+		// Lakukan pencarian
+		search(formData);
+		
+		// Switch to results view if not in split mode
+		if (viewMode !== 'split') {
+			setViewMode('results');
+		}
 	};
 
 	// Render form component
@@ -118,17 +153,27 @@ function App() {
 	const renderResults = () => (
 		<div className="bg-white p-6 rounded shadow h-full">
 			{loading ? (
-				<Spinner />
-			) : searchResults && currentSearch ? (
+				<Spinner message="Sedang mencari recipe..." />
+			) : error ? (
+				<div className="p-8 text-center text-red-500">
+					<p>{error}</p>
+					<button 
+						onClick={() => setViewMode('form')}
+						className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+					>
+						Kembali ke Form
+					</button>
+				</div>
+			) : results && currentSearch ? (
 				<>
-					<h2 className="text-xl font-bold mb-4">
+					<h2 className="text-xl font-bold mb-4 overflow-hidden text-ellipsis">
 						Recipe untuk {currentSearch.targetElement}
 					</h2>
 					
 					<SearchMetadata searchParams={currentSearch} />
 					
 					<Suspense fallback={<div className="p-8 text-center">Loading visualizer...</div>}>
-						{/* Placeholder for RecipeTree */}
+						{/* Note: isLiveUpdate bisa diabaikan jika belum diimplementasikan */}
 						<div className="border p-4 rounded bg-gray-50 text-center mb-4 min-h-[300px] flex items-center justify-center">
 							<p className="text-gray-500">
 								Visualisasi recipe tree akan ditampilkan di sini
@@ -137,16 +182,18 @@ function App() {
 					</Suspense>
 					
 					{/* Statistics */}
-					<div className="grid grid-cols-2 gap-4 bg-blue-50 p-4 rounded">
-						<div>
-							<p className="text-sm text-gray-600">Waktu pencarian:</p>
-							<p className="font-semibold">{searchResults.stats.time} ms</p>
+					{results.stats && (
+						<div className="grid grid-cols-2 gap-4 bg-blue-50 p-4 rounded">
+							<div>
+								<p className="text-sm text-gray-600">Waktu pencarian:</p>
+								<p className="font-semibold">{results.stats.time} ms</p>
+							</div>
+							<div>
+								<p className="text-sm text-gray-600">Node yang dikunjungi:</p>
+								<p className="font-semibold">{results.stats.nodesVisited}</p>
+							</div>
 						</div>
-						<div>
-							<p className="text-sm text-gray-600">Node yang dikunjungi:</p>
-							<p className="font-semibold">{searchResults.stats.nodesVisited}</p>
-						</div>
-					</div>
+					)}
 				</>
 			) : (
 				<div className="p-8 text-center text-gray-500">
@@ -227,7 +274,6 @@ function App() {
 			</footer>
 		</div>
 	);
-
 }
 
 export default App;
