@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 /**
  * Komponen untuk menampilkan statistik pencarian
@@ -22,7 +22,7 @@ function SearchStats({ stats }) {
           {time < 1000 ? `${time} ms` : `${(time / 1000).toFixed(2)} detik`}
         </span>
       </div>
-      
+
       <div className="flex flex-col">
         <span className="text-sm text-gray-600">Node yang dikunjungi:</span>
         <span className="font-semibold">{nodesVisited.toLocaleString()}</span>

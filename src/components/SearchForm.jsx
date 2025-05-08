@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import AlgorithmSelector from './AlgorithmSelector';
-import ElementInput from './ElementInput';
+import React, { useState } from "react";
+import AlgorithmSelector from "./AlgorithmSelector";
+import ElementInput from "./ElementInput";
 // Import SimpleModeToggle instead of ModeToggle
-import ModeToggle from './ModeToggle';
-import RecipeCounter from './RecipeCounter';
-import { DEFAULT_FORM_VALUES } from '../utils/Constants';
+import ModeToggle from "./ModeToggle";
+import RecipeCounter from "./RecipeCounter";
+import { DEFAULT_FORM_VALUES } from "../utils/Constants";
 
 function SearchForm({ onSearch }) {
   const [formState, setFormState] = useState(DEFAULT_FORM_VALUES);
@@ -12,47 +12,47 @@ function SearchForm({ onSearch }) {
 
   const handleChange = (field, value) => {
     console.log(`Changing ${field} to:`, value);
-    setFormState(prev => ({ ...prev, [field]: value }));
+    setFormState((prev) => ({ ...prev, [field]: value }));
   };
-  
+
   const handleModeToggle = (isMultiple) => {
     console.log("Mode toggle changed to:", isMultiple);
-    setFormState(prev => ({ ...prev, isMultiple }));
+    setFormState((prev) => ({ ...prev, isMultiple }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSearch({
       ...formState,
-      mode: formState.isMultiple ? 'multiple' : 'shortest',
-      liveUpdate
+      mode: formState.isMultiple ? "multiple" : "shortest",
+      liveUpdate,
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="p-4 border rounded">
-      <ElementInput 
+      <ElementInput
         value={formState.targetElement}
-        onChange={(value) => handleChange('targetElement', value)}
+        onChange={(value) => handleChange("targetElement", value)}
       />
 
       <AlgorithmSelector
         selected={formState.algorithm}
-        onChange={(value) => handleChange('algorithm', value)}
+        onChange={(value) => handleChange("algorithm", value)}
       />
-      
+
       {/* Menggunakan SimpleModeToggle sebagai pengganti ModeToggle */}
       <div className="p-3 border border-gray-200 rounded mb-4 bg-gray-50">
         <ModeToggle
           isMultiple={formState.isMultiple}
           onChange={handleModeToggle}
         />
-        
+
         {formState.isMultiple && (
           <div className="mt-3">
             <RecipeCounter
               value={formState.maxRecipes}
-              onChange={(value) => handleChange('maxRecipes', value)}
+              onChange={(value) => handleChange("maxRecipes", value)}
             />
           </div>
         )}
@@ -67,9 +67,7 @@ function SearchForm({ onSearch }) {
             onChange={(e) => setLiveUpdate(e.target.checked)}
             className="mr-2 h-4 w-4"
           />
-          <span className="text-sm">
-            Aktifkan Live Update
-          </span>
+          <span className="text-sm">Aktifkan Live Update</span>
         </label>
         {liveUpdate && (
           <p className="text-xs text-gray-600 mt-1">
@@ -82,21 +80,24 @@ function SearchForm({ onSearch }) {
         type="submit"
         disabled={!formState.targetElement}
         className={`w-full p-2 rounded text-white ${
-          !formState.targetElement 
-            ? 'bg-gray-300 cursor-not-allowed' 
-            : 'bg-blue-500 hover:bg-blue-600'
+          !formState.targetElement
+            ? "bg-gray-300 cursor-not-allowed"
+            : "bg-blue-500 hover:bg-blue-600"
         }`}
       >
-        {!formState.targetElement 
-          ? 'Masukkan elemen target terlebih dahulu' 
-          : 'Cari Resep'}
+        {!formState.targetElement
+          ? "Masukkan elemen target terlebih dahulu"
+          : "Cari Resep"}
       </button>
-      
+
       {/* Debug info - melihat state saat ini */}
       <div className="mt-4 p-2 bg-gray-100 text-xs">
-        <div>Current Mode: {formState.isMultiple ? 'Multiple Recipes' : 'Shortest Path'}</div>
+        <div>
+          Current Mode:{" "}
+          {formState.isMultiple ? "Multiple Recipes" : "Shortest Path"}
+        </div>
         <div>Algorithm: {formState.algorithm}</div>
-        <div>Live Update: {liveUpdate ? 'Enabled' : 'Disabled'}</div>
+        <div>Live Update: {liveUpdate ? "Enabled" : "Disabled"}</div>
       </div>
     </form>
   );

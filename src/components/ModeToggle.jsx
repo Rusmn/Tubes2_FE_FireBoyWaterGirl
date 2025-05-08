@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 function ModeToggle({ isMultiple, onChange }) {
   return (
@@ -9,7 +9,7 @@ function ModeToggle({ isMultiple, onChange }) {
           type="button"
           onClick={() => onChange(false)}
           className={`px-4 py-2 rounded ${
-            !isMultiple ? 'bg-blue-500 text-white' : 'bg-gray-200'
+            !isMultiple ? "bg-blue-500 text-white" : "bg-gray-200"
           }`}
         >
           Shortest Path
@@ -18,7 +18,7 @@ function ModeToggle({ isMultiple, onChange }) {
           type="button"
           onClick={() => onChange(true)}
           className={`px-4 py-2 rounded ${
-            isMultiple ? 'bg-blue-500 text-white' : 'bg-gray-200'
+            isMultiple ? "bg-blue-500 text-white" : "bg-gray-200"
           }`}
         >
           Multiple Recipes
