@@ -86,8 +86,8 @@ function App() {
       setSearchResults({
 		combos : [
 			// root
-			{ id: 0, parentId: null, inputs:['Mud','Fire'],   output:'Brick' },
-			{ id: 1, parentId: null, inputs:['Clay','Stone'], output:'Brick' },
+			{ id: 0, parentId: -1, inputs:['Mud','Fire'],   output:'Brick' },
+			{ id: 1, parentId: -1, inputs:['Clay','Stone'], output:'Brick' },
 		  
 			// sub‐combo Mud→Brick
 			{ id: 2, parentId: 0,    inputs:['Water','Earth'],output:'Mud'   },

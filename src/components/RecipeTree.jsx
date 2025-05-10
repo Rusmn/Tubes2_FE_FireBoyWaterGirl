@@ -90,7 +90,7 @@ export default function RecipeTree({ combos, target }) {
     };
     
     // Start with root combos (those with null parentId) and connect them to the target
-    const rootCombos = combos.filter(c => c.parentId === null && c.output === target);
+    const rootCombos = combos.filter(c => c.parentId === -1 && c.output === target);
     rootCombos.forEach(combo => createNodesAndEdges(combo.id, targetId));
     
     setElements(els);
