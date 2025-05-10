@@ -1,4 +1,5 @@
 import React from "react";
+import logo from "../assets/logo.png";
 
 function Navbar({ viewMode, setViewMode, currentSearch }) {
   const baseButtonClass =
@@ -12,7 +13,8 @@ function Navbar({ viewMode, setViewMode, currentSearch }) {
   return (
     <nav className="bg-yellow-950/95 text-amber-100 px-4 sm:px-6 py-3.5 sticky top-0 z-20 font-merriweather shadow-2xl backdrop-blur-lg border-b-2 border-black/30">
       <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-cinzelDecorative tracking-wider font-extrabold drop-shadow-xl whitespace-nowrap">
+        <h1 className="flex items-center gap-2 text-xl sm:text-2xl lg:text-3xl font-cinzelDecorative tracking-wider font-extrabold drop-shadow-xl whitespace-nowrap">
+          <img src={logo} alt="Logo RBR" className="w-10 h-10" />
           <span className="text-red-400 hover:text-red-300 transition-colors">
             FIRE
           </span>{" "}
