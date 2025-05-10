@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import SearchForm from './components/SearchForm';
-import Spinner from './components/Spinner';
+import React, { useState } from "react";
+import SearchForm from "./components/SearchForm";
+import Spinner from "./components/Spinner";
 
 // Buat mockup RecipeTree sederhana
 function MockRecipeTree() {
@@ -9,7 +9,9 @@ function MockRecipeTree() {
       <h2 className="text-xl font-semibold mb-4">Visualisasi Recipe Tree</h2>
       <div className="bg-gray-100 p-4 text-center">
         <p>Bagian ini akan menampilkan recipe tree</p>
-        <p className="text-sm text-gray-500">Visualisasi akan diimplementasikan setelah integrasi dengan backend</p>
+        <p className="text-sm text-gray-500">
+          Visualisasi akan diimplementasikan setelah integrasi dengan backend
+        </p>
       </div>
     </div>
   );
@@ -39,9 +41,9 @@ function TestPage() {
   const [showResults, setShowResults] = useState(false);
 
   const handleSearch = (formData) => {
-    console.log('Search data:', formData);
+    console.log("Search data:", formData);
     setLoading(true);
-    
+
     // Simulasi loading
     setTimeout(() => {
       setLoading(false);
@@ -54,12 +56,12 @@ function TestPage() {
       <h1 className="text-3xl font-bold text-center mb-8">
         Little Alchemy 2 Recipe Finder
       </h1>
-      
+
       <div className="max-w-lg mx-auto">
         <SearchForm onSearch={handleSearch} />
-        
+
         {loading && <Spinner />}
-        
+
         {showResults && (
           <div className="mt-8">
             <MockRecipeTree />
