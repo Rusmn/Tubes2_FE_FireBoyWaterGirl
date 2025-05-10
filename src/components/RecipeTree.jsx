@@ -11,40 +11,106 @@ export default function RecipeTree({ combos, target }) {
 
   useEffect(() => {
     if (!combos) return;
+    
     const els = [];
-    const seen = new Set();
-
-    // Kumpulkan semua output untuk dijadikan node global
-    const allOutputs = new Set(combos.map(c => c.output));
-
+    const outputNodes = new Map(); // Untuk melacak output berdasarkan parentId
+    const inputNodes = new Map();  // Untuk melacak input nodes per combo
+  
+    // 1. Buat semua output node dan catat parentId-nya
+    combos.forEach(c => {
+      const outputKey = c.parentId !== null ? `${c.output}_${c.parentId}` : c.output;
+      
+      if (!outputNodes.has(outputKey)) {
+        outputNodes.set(outputKey, true);
+        els.push({
+          data: {
+            id: outputKey,
+            label: c.output,
+            type: 'element',
+            isOutput: true,
+            parentComboId: c.parentId // Tambahkan info parent combo
+          }
+        });
+      }
+    });
+  
+    // 2. Buat combo nodes dan input nodes
     combos.forEach(c => {
       const comboId = `combo_${c.id}`;
-
-      // 1) Output: satu node global
-      if (!seen.has(c.output)) {
-        seen.add(c.output);
-        els.push({ data:{ id: c.output, label: c.output, type: 'element' } });
-      }
-
-      // 2) Combo node
-      els.push({ data:{ id: comboId, type: 'combo' } });
-      els.push({ data:{ source: comboId, target: c.output } });
-
-      // 3) Inputs: unique per combo jika bukan output
-      c.inputs.forEach(inp => {
-        const nodeId = allOutputs.has(inp)
-          ? inp             // jika juga output, treat global
-          : `${comboId}_${inp}`; // else prefix dengan comboId
-
-        if (!seen.has(nodeId)) {
-          seen.add(nodeId);
-          els.push({ data:{ id: nodeId, label: inp, type: 'element' } });
+      const outputKey = c.parentId !== null ? `${c.output}_${c.parentId}` : c.output;
+  
+      // Combo node
+      els.push({ 
+        data: { 
+          id: comboId, 
+          type: 'combo',
+          parentId: c.parentId 
+        } 
+      });
+  
+      // Koneksi combo ke output
+      els.push({ 
+        data: { 
+          source: comboId, 
+          target: outputKey 
+        } 
+      });
+  
+      // Buat input nodes dan simpan mapping-nya
+      c.inputs.forEach(input => {
+        const inputId = `${comboId}_${input}`;
+        
+        els.push({
+          data: {
+            id: inputId,
+            label: input,
+            type: 'element',
+            isInput: true,
+            belongsToCombo: c.id // Tambahkan info combo pemilik
+          }
+        });
+  
+        // Simpan mapping input untuk koneksi nanti
+        if (!inputNodes.has(input)) {
+          inputNodes.set(input, []);
         }
-
-        els.push({ data:{ source: nodeId, target: comboId } });
+        inputNodes.get(input).push(inputId);
+  
+        // Koneksi input ke combo
+        els.push({ 
+          data: { 
+            source: inputId, 
+            target: comboId 
+          } 
+        });
       });
     });
-
+  
+    // 3. Buat koneksi antara output dengan input di parent combo
+    combos.forEach(c => {
+      if (c.parentId !== null) {
+        const outputKey = `${c.output}_${c.parentId}`;
+        
+        // Cari parent combo
+        const parentCombo = combos.find(combo => combo.id === c.parentId);
+        if (parentCombo) {
+          // Cari input node di parent combo yang sesuai dengan output ini
+          const parentInputNodes = inputNodes.get(c.output) || [];
+          parentInputNodes.forEach(inputId => {
+            if (inputId.startsWith(`combo_${c.parentId}_`)) {
+              els.push({
+                data: {
+                  source: outputKey,
+                  target: inputId,
+                  isHierarchy: true // Untuk styling khusus
+                }
+              });
+            }
+          });
+        }
+      }
+    });
+  
     setElements(els);
   }, [combos]);
 
@@ -69,6 +135,15 @@ export default function RecipeTree({ combos, target }) {
     { selector:`node[id = "${target}"]`, style:{
         'border-color':'#FF5733','border-width':4
       }},
+    {
+      selector: 'edge[isHierarchy]',
+      style: {
+        'line-color': '#4CAF50',
+        'line-style': 'dashed',
+        'target-arrow-shape': 'triangle',
+        'curve-style': 'unbundled-bezier'
+      }
+      },
     { selector:'edge', style:{
         'curve-style':'bezier','target-arrow-shape':'triangle','arrow-scale':1,'line-color':'#bbb'
       }}
