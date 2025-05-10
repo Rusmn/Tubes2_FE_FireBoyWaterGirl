@@ -82,27 +82,42 @@ function App() {
     });
 
     setTimeout(() => {
-      try {
-        // Simulasi hasil pencarian
-        setSearchResults({
-          combos: [
-            { id: 0, inputs: ["Mud", "Fire"], output: "Brick" },
-            { id: 1, inputs: ["Clay", "Stone"], output: "Brick" },
-            { id: 2, inputs: ["Lava", "Air"], output: "Stone" },
-            { id: 3, inputs: ["Earth", "Pressure"], output: "Stone" },
-            { id: 4, inputs: ["Fire", "Earth"], output: "Lava" },
-          ],
-          stats: {
-            time: Math.floor(Math.random() * 100) + 50,
-            nodesVisited: Math.floor(Math.random() * 100) + 20,
-          },
-        });
-        setLoading(false);
+      setLoading(false);
+      setSearchResults({
+		combos : [
+			// root
+			{ id: 0, parentId: null, inputs:['Mud','Fire'],   output:'Brick' },
+			{ id: 1, parentId: null, inputs:['Clay','Stone'], output:'Brick' },
+		  
+			// sub‐combo Mud→Brick
+			{ id: 2, parentId: 0,    inputs:['Water','Earth'],output:'Mud'   },
+		  
+			// sub‐combo Stone→Brick
+			{ id: 3, parentId: 1,    inputs:['Lava','Air'],   output:'Stone' },
+			{ id: 4, parentId: 1,    inputs:['Earth','Pressure'], output:'Stone' },
+		  
+			// deeper misalnya Stone dari combo#3
+			{ id: 5, parentId: 3,    inputs:['Fire','Earth'], output:'Lava'    },
+			{ id: 6, parentId: 4,    inputs:['Air','Air'],   output:'Pressure'  },
 
-        if (viewMode !== "split") setViewMode("results");
-      } catch (e) {
-        setError("Terjadi kesalahan saat memuat hasil.");
-        setLoading(false);
+			{ id: 7, parentId: 1,    inputs:['Mud','Sand'],output:'Clay'  },
+			{ id: 8, parentId: 7,    inputs:['Earth','Water'],output:'Mud'  },
+
+			{ id: 9, parentId: 7,    inputs:['Stone','Air'],output:'Sand'  },
+
+			// sub‐combo Stone→Brick
+			{ id: 10, parentId: 9,    inputs:['Lava','Air'],   output:'Stone' },
+			{ id: 11, parentId: 9,    inputs:['Earth','Pressure'], output:'Stone' },
+		  
+			// deeper misalnya Stone dari combo#3
+			{ id: 12, parentId: 10,    inputs:['Fire','Earth'], output:'Lava'    },
+			{ id: 13, parentId: 11,    inputs:['Air','Air'],   output:'Pressure'  },
+		  ],	
+        stats: { time: 120, nodesVisited: 42 }
+      });
+	  
+      if (viewMode !== 'split') {
+        setViewMode('results');
       }
     }, 1500);
   };
