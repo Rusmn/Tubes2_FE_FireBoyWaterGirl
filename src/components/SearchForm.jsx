@@ -30,7 +30,10 @@ function SearchForm({ onSearch }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border rounded">
+    <form
+      onSubmit={handleSubmit}
+      className="p-4 border rounded font-lora"
+    >
       <ElementInput
         value={formState.targetElement}
         onChange={(value) => handleChange("targetElement", value)}

@@ -38,7 +38,7 @@ function AlgorithmSelector({ selected, onChange }) {
             checked={selected === "bidirectional"}
             onChange={() => onChange("bidirectional")}
           />
-          <span className="ml-2">Bidirectional (Bonus)</span>
+          <span className="ml-2">Bidirectional </span>
         </label>
       </div>
     </div>

@@ -2,9 +2,11 @@ import React from "react";
 
 function Navbar({ viewMode, setViewMode, currentSearch }) {
   return (
-    <nav className="bg-blue-600 text-white p-4 sticky top-0 z-10">
+    <nav className="bg-blue-600 text-white p-4 sticky top-0 z-10 font-merriweather font-semibold">
       <div className="container mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <h1 className="text-xl font-bold">Little Alchemy 2 Recipe Finder</h1>
+        <h1 className="text-xl font-cinzelDecorative font-semibold">
+          FIRE BOY WATER GIRL
+        </h1>
 
         <button
           onClick={() => setViewMode("book")}

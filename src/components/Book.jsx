@@ -58,8 +58,8 @@ function Book() {
   });
 
   return (
-    <div className="bg-white p-6 rounded shadow-md max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Buku Elemen Little Alchemy 2</h2>
+    <div className="bg-white p-6 rounded shadow-md max-w-4xl mx-auto font-cinzel">
+      <h2 className="text-2xl font-bold mb-4 font-ebgaramond">Buku Elemen Little Alchemy 2</h2>
 
       {/* Search dan Filter */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">

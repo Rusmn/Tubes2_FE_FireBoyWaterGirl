@@ -95,20 +95,22 @@ function App() {
   };
 
   const renderForm = () => (
-    <div className="bg-white p-6 rounded shadow h-full">
-      <h2 className="text-xl font-bold mb-4">Cari Recipe Elemen</h2>
+    <div className="bg-white p-6 rounded shadow h-full font-cinzel">
+      <h2 className="text-2xl mb-4  font-ebgaramond font-bold">
+        Cari Recipe Elemen
+      </h2>
       <SearchForm onSearch={handleSearch} />
       <SearchHistory history={searchHistory} onSelect={handleSearch} />
     </div>
   );
 
   const renderResults = () => (
-    <div className="bg-white p-6 rounded shadow h-full">
+    <div className="bg-white p-6 rounded shadow h-full font-cinzel">
       {loading ? (
         <Spinner message="Sedang mencari recipe..." />
       ) : searchResults && currentSearch ? (
         <>
-          <h2 className="text-xl font-bold mb-4">
+          <h2 className="text-2xl font-ebgaramond font-bold mb-4">
             Recipe untuk {currentSearch.targetElement}
           </h2>
           <SearchMetadata searchParams={currentSearch} />
@@ -121,8 +123,6 @@ function App() {
               combos={searchResults.combos}
               target={currentSearch.targetElement}
             />
-            {/* Jika pakai graph:
-            <RecipeGraph combos={searchResults.combos} target={currentSearch.targetElement} /> */}
           </Suspense>
           <div className="grid grid-cols-2 gap-4 bg-blue-50 p-4 rounded mt-4">
             <div>
@@ -186,7 +186,7 @@ function App() {
         {viewMode === "book" && <Book />}
       </main>
 
-      <footer className="mt-auto py-4 px-4 text-center text-sm text-gray-500 border-t">
+      <footer className="mt-auto py-4 px-4 text-center text-sm text-gray-500 border-t font-merriweather">
         <p>Little Alchemy 2 Recipe Finder - Tugas Besar 2 Strategi Algoritma</p>
         <p className="mt-1">
           Keyboard Shortcuts: <span className="font-mono">Ctrl+F</span> (Form),

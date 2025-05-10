@@ -2,7 +2,7 @@ import React from "react";
 
 function NavigationBreadcrumbs({ currentView, onSwitchView }) {
   return (
-    <div className="py-2 px-4 bg-gray-100 text-sm flex items-center border-b">
+    <div className="py-2 px-4 bg-gray-100 text-sm flex items-center border-b font-lora">
       <span
         className={`cursor-pointer ${
           currentView === "form" ? "font-bold" : "text-blue-600 hover:underline"
