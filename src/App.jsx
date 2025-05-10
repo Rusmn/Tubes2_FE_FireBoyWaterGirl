@@ -1,79 +1,86 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
-import Navbar from './components/Navbar';
-import NavigationBreadcrumbs from './components/NavigationBreadcrumbs';
-import SearchForm from './components/SearchForm';
-import SearchMetadata from './components/SearchMetadata';
-import SearchHistory from './components/SearchHistory';
-import Spinner from './components/Spinner';
-import Book from './components/Book'; 
-import './index.css';
-// import RecipeGraph from './components/RecipeGraph';
+import React, { useState, useEffect, lazy, Suspense } from "react";
+import Navbar from "./components/Navbar";
+import NavigationBreadcrumbs from "./components/NavigationBreadcrumbs";
+import SearchForm from "./components/SearchForm";
+import SearchMetadata from "./components/SearchMetadata";
+import SearchHistory from "./components/SearchHistory";
+import Spinner from "./components/Spinner";
+import Book from "./components/Book";
+import paper from "./assets/paper1.png";
+import wood from "./assets/wood2.png";
+import "./index.css";
 
-const RecipeTree = lazy(() => import('./components/RecipeTree'));
-// Atau ganti ke RecipeGraph jika ingin gunakan versi graph
-// const RecipeGraph = lazy(() => import('./components/RecipeGraph'));
+const RecipeTree = lazy(() => import("./components/RecipeTree"));
 
 function App() {
-  const [viewMode, setViewMode] = useState('form');
+  const [viewMode, setViewMode] = useState("form");
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState(null);
   const [currentSearch, setCurrentSearch] = useState(null);
   const [searchHistory, setSearchHistory] = useState([]);
+  const [error, setError] = useState(null);
 
-  // Load history dari localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('searchHistory');
-      if (saved) setSearchHistory(JSON.parse(saved));
+      const saved = localStorage.getItem("searchHistory");
+      if (saved) {
+        setSearchHistory(JSON.parse(saved));
+      }
     } catch (err) {
-      console.error('Failed to load history', err);
+      console.error("Gagal memuat riwayat:", err);
     }
   }, []);
 
   useEffect(() => {
     try {
-      localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+      localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
     } catch (err) {
-      console.error('Failed to save history', err);
+      console.error("Gagal menyimpan riwayat:", err);
     }
   }, [searchHistory]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")
+        return;
 
-      if (e.ctrlKey && e.key === 'f') {
-        e.preventDefault();
-        setViewMode('form');
-      } else if (e.ctrlKey && e.key === 'r' && searchResults) {
-        e.preventDefault();
-        setViewMode('results');
-      } else if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        setViewMode('split');
-      } else if (e.ctrlKey && e.key === 'b') {
-        e.preventDefault();
-        setViewMode('book');
+      if (e.ctrlKey) {
+        if (e.key === "f") {
+          e.preventDefault();
+          setViewMode("form");
+        } else if (e.key === "r" && searchResults) {
+          e.preventDefault();
+          setViewMode("results");
+        } else if (e.key === "s") {
+          e.preventDefault();
+          setViewMode("split");
+        } else if (e.key === "b") {
+          e.preventDefault();
+          setViewMode("book");
+        }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [searchResults]);
 
   const handleSearch = (formData) => {
-    setCurrentSearch(formData);
+    setError(null);
     setLoading(true);
+    setSearchResults(null);
+    setCurrentSearch(formData);
 
-    setSearchHistory(prev => {
-      const filtered = prev.filter(item =>
-        item.targetElement !== formData.targetElement ||
-        item.algorithm !== formData.algorithm ||
-        item.isMultiple !== formData.isMultiple
+    setSearchHistory((prev) => {
+      const filtered = prev.filter(
+        (item) =>
+          item.targetElement !== formData.targetElement ||
+          item.algorithm !== formData.algorithm ||
+          item.isMultiple !== formData.isMultiple
       );
       return [formData, ...filtered.slice(0, 4)];
     });
 
-    // Simulasi hasil API
     setTimeout(() => {
       setLoading(false);
       setSearchResults({
@@ -115,80 +122,157 @@ function App() {
     }, 1500);
   };
 
+  const paperCardBaseClasses =
+    "bg-cover bg-center p-6 sm:p-8 rounded-xl shadow-2xl h-full border-2 border-yellow-700/40 backdrop-blur-sm bg-opacity-[0.97]";
+  const pageTitleBaseClasses =
+    "text-3xl sm:text-4xl mb-8 sm:mb-10 font-bold text-center text-yellow-950 drop-shadow-xl tracking-wider";
+
   const renderForm = () => (
-    <div className="bg-white p-6 rounded shadow h-full">
-      <h2 className="text-xl font-bold mb-4">Cari Recipe Elemen</h2>
+    <div
+      className={`${paperCardBaseClasses} font-lora`}
+      style={{ backgroundImage: `url(${paper})` }}
+    >
+      <h2 className={`${pageTitleBaseClasses} font-cinzel`}>
+        Cari Recipe Elemen Alkimia
+      </h2>
       <SearchForm onSearch={handleSearch} />
-      <SearchHistory history={searchHistory} onSelect={handleSearch} />
+      <div className="mt-8 sm:mt-10 sm: border-t-2 border-yellow-700/20">
+        <SearchHistory history={searchHistory} onSelect={handleSearch} />
+      </div>
     </div>
   );
 
   const renderResults = () => (
-    <div className="bg-white p-6 rounded shadow h-full">
-      {loading ? (
-        <Spinner message="Sedang mencari recipe..." />
-      ) : searchResults && currentSearch ? (
+    <div
+      className={`${paperCardBaseClasses} font-lora`}
+      style={{ backgroundImage: `url(${paper})` }}
+    >
+      {loading && <Spinner />}
+      {!loading && error && (
+        <div className="py-16 text-center text-red-700 font-merriweather">
+          <p className="text-xl mb-3">🚫 Terjadi Kesalahan</p>
+          <p className="text-sm mb-6 italic">{error}</p>
+        </div>
+      )}
+      {!loading && !error && searchResults && currentSearch && (
         <>
-          <h2 className="text-xl font-bold mb-4">Recipe untuk {currentSearch.targetElement}</h2>
+          <h2 className={`${pageTitleBaseClasses} font-cinzel`}>
+            Hasil Ramuan untuk: {currentSearch.targetElement}
+          </h2>
           <SearchMetadata searchParams={currentSearch} />
-          <Suspense fallback={<div className="p-8 text-center">Loading visualizer...</div>}>
-            <RecipeTree combos={searchResults.combos} target={currentSearch.targetElement} />
-            {/* Jika pakai graph:
-            <RecipeGraph combos={searchResults.combos} target={currentSearch.targetElement} /> */}
+          <Suspense
+            fallback={
+              <div className="py-10 text-center text-yellow-800/90 font-merriweather italic">
+                Memuat visualisasi alkimia...
+              </div>
+            }
+          >
+            <RecipeTree
+              combos={searchResults.combos}
+              target={currentSearch.targetElement}
+            />
           </Suspense>
-          <div className="grid grid-cols-2 gap-4 bg-blue-50 p-4 rounded mt-4">
-            <div>
-              <p className="text-sm text-gray-600">Waktu pencarian:</p>
-              <p className="font-semibold">{searchResults.stats.time} ms</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Node yang dikunjungi:</p>
-              <p className="font-semibold">{searchResults.stats.nodesVisited}</p>
-            </div>
+          <div className="mt-8 p-4 bg-yellow-50 rounded shadow-sm">
+            <p className="text-sm text-gray-700 mb-1">
+              ⏱️ Waktu: <strong>{searchResults.stats.time} ms</strong>
+            </p>
+            <p className="text-sm text-gray-700">
+              🔍 Node dikunjungi:{" "}
+              <strong>{searchResults.stats.nodesVisited}</strong>
+            </p>
           </div>
         </>
-      ) : (
-        <div className="p-8 text-center text-gray-500">
-          <p>Belum ada hasil pencarian.</p>
+      )}
+      {!loading && !error && !searchResults && (
+        <div className="py-16 text-center text-yellow-800/90 font-merriweather">
+          <p className="text-xl mb-3">🔮 Belum Ada Hasil.</p>
+          <p className="text-sm mb-6 italic">
+            Silakan mulai pencarian baru untuk melihat hasil ramuan.
+          </p>
           <button
-            onClick={() => setViewMode('form')}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            onClick={() => setViewMode("form")}
+            className="px-8 py-3 bg-yellow-700 text-white rounded-lg hover:bg-yellow-800 transition-all duration-150 ease-in-out shadow-lg focus:outline-none"
           >
-            Mulai Pencarian
+            Mulai Pencarian Baru
           </button>
         </div>
       )}
     </div>
   );
 
+  const renderBook = () => (
+    <div
+      className={`${paperCardBaseClasses} font-lora`}
+      style={{ backgroundImage: `url(${paper})` }}
+    >
+      <Book />
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white text-blue-600 p-2 z-50">
-        Langsung ke konten utama
+    <div
+      className="min-h-screen bg-cover bg-center bg-fixed"
+      style={{ backgroundImage: `url(${wood})` }}
+    >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-amber-100 text-yellow-800 p-3 z-50 rounded-lg shadow-lg"
+      >
+        Langsung ke Konten Utama
       </a>
 
-      <Navbar viewMode={viewMode} setViewMode={setViewMode} currentSearch={currentSearch} />
-      <NavigationBreadcrumbs currentView={viewMode} onSwitchView={setViewMode} />
+      <Navbar
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        currentSearch={currentSearch}
+      />
+      <NavigationBreadcrumbs
+        currentView={viewMode}
+        onSwitchView={setViewMode}
+      />
 
-      <main id="main-content" className="container mx-auto px-4 py-4">
-        {viewMode === 'form' && <div className="max-w-4xl mx-auto">{renderForm()}</div>}
-        {viewMode === 'results' && <div className="max-w-4xl mx-auto">{renderResults()}</div>}
-        {viewMode === 'split' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <main id="main-content" className="container mx-auto px-4 py-8 sm:py-12">
+        {viewMode === "form" && (
+          <div className="max-w-3xl lg:max-w-4xl mx-auto">{renderForm()}</div>
+        )}
+        {viewMode === "results" && (
+          <div className="max-w-3xl lg:max-w-4xl mx-auto">
+            {renderResults()}
+          </div>
+        )}
+        {viewMode === "split" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             <div>{renderForm()}</div>
             <div>{renderResults()}</div>
           </div>
         )}
-        {viewMode === 'book' && <Book />}
+        {viewMode === "book" && (
+          <div className="max-w-4xl lg:max-w-6xl mx-auto">{renderBook()}</div>
+        )}
       </main>
 
-      <footer className="mt-auto py-4 px-4 text-center text-sm text-gray-500 border-t">
-        <p>Little Alchemy 2 Recipe Finder - Tugas Besar 2 Strategi Algoritma</p>
-        <p className="mt-1">
-          Keyboard Shortcuts: <span className="font-mono">Ctrl+F</span> (Form),
-          <span className="font-mono"> Ctrl+R</span> (Results),
-          <span className="font-mono"> Ctrl+S</span> (Split View),
-          <span className="font-mono"> Ctrl+B</span> (Book)
+      <footer className="mt-auto py-8 px-4 text-center text-sm text-amber-100/80 bg-black/70 backdrop-blur-sm font-merriweather shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.2)]">
+        <p className="tracking-wide">
+          Little Alchemy Recipe Finder - Tugas Besar Strategi Algoritma
+        </p>
+        <p className="mt-2 text-xs text-amber-100/70">
+          Keyboard Shortcuts:{" "}
+          <span className="font-mono bg-black/25 rounded-sm px-1.5">
+            Ctrl+F
+          </span>{" "}
+          (Form),{" "}
+          <span className="font-mono bg-black/25 rounded-sm px-1.5">
+            Ctrl+R
+          </span>{" "}
+          (Results),{" "}
+          <span className="font-mono bg-black/25 rounded-sm px-1.5">
+            Ctrl+S
+          </span>{" "}
+          (Split),{" "}
+          <span className="font-mono bg-black/25 rounded-sm px-1.5">
+            Ctrl+B
+          </span>{" "}
+          (Book)
         </p>
       </footer>
     </div>

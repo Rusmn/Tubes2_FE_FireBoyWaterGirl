@@ -4,8 +4,8 @@
  * @returns {boolean}
  */
 export function isBasicElement(element) {
-	const basicElements = ['Air', 'Earth', 'Fire', 'Water'];
-	return basicElements.includes(element);
+  const basicElements = ["Air", "Earth", "Fire", "Water"];
+  return basicElements.includes(element);
 }
 
 /**
@@ -13,7 +13,7 @@ export function isBasicElement(element) {
  * @returns {string}
  */
 export function generateNodeId() {
-	return Math.random().toString(36).substring(2, 9);
+  return Math.random().toString(36).substring(2, 9);
 }
 
 /**
@@ -23,12 +23,12 @@ export function generateNodeId() {
  * @returns {Array}
  */
 export function formatTreeData(data) {
-	if (!data || !Array.isArray(data) || data.length === 0) {
-		return [];
-	}
-	
-	// Logika untuk memformat data tree
-	// Ini akan diimplementasikan setelah integrasi dengan backend
-	
-	return data;
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    return [];
+  }
+
+  // Logika untuk memformat data tree
+  // Ini akan diimplementasikan setelah integrasi dengan backend
+
+  return data;
 }

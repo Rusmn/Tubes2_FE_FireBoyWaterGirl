@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import CytoscapeComponent from 'react-cytoscapejs';
-import cytoscape from 'cytoscape';
-import dagre from 'cytoscape-dagre';
+import React, { useEffect, useState } from "react";
+import CytoscapeComponent from "react-cytoscapejs";
+import cytoscape from "cytoscape";
+import dagre from "cytoscape-dagre";
 
 cytoscape.use(dagre);
 
@@ -96,7 +96,6 @@ export default function RecipeTree({ combos, target }) {
     setElements(els);
   }, [combos, target]);
 
-  // Layout & fit
   useEffect(() => {
     if (!cy || elements.length === 0) return;
     
