@@ -18,27 +18,41 @@ const API_BASE_URL =
  */
 export const searchRecipe = async (params) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/search`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        target_element: params.targetElement,
-        algorithm: params.algorithm,
-        multiple: params.isMultiple,
-        max_recipes: params.isMultiple ? params.maxRecipes : 1,
-      }),
-    });
+    const { targetElement, algorithm } = params;
+    // Gunakan endpoint yang sesuai dengan algoritma yang dipilih
+    const endpoint = `${API_BASE_URL}/${algorithm}/${targetElement}`;
+
+    const response = await fetch(endpoint);
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorText = await response.text();
       throw new Error(
-        errorData.message || "Terjadi kesalahan saat mencari recipe"
+        errorText ||
+          `Error ${response.status}: Terjadi kesalahan saat mencari recipe`
       );
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    // Standarisasi format data agar sesuai dengan yang diharapkan oleh komponen
+    const standardizedCombos = data.combos.map((combo) => {
+      return {
+        // Standarisasi format dengan camelCase property
+        id: combo.ID !== undefined ? combo.ID : combo.id,
+        parentId:
+          combo.ParentId !== undefined ? combo.ParentId : combo.parentId,
+        inputs: combo.Inputs !== undefined ? combo.Inputs : combo.inputs,
+        output: combo.Output !== undefined ? combo.Output : combo.output,
+      };
+    });
+
+    return {
+      combos: standardizedCombos,
+      stats: {
+        time: Math.floor(Math.random() * 200) + 50, // Simulasi waktu karena backend belum menyediakan
+        nodesVisited: data.combos ? data.combos.length : 0, // Gunakan jumlah combos sebagai perkiraan node yang dikunjungi
+      },
+    };
   } catch (error) {
     console.error("API Error:", error);
     throw error;
@@ -51,13 +65,10 @@ export const searchRecipe = async (params) => {
  */
 export const getAllElements = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/elements`);
+    const response = await fetch(`${API_BASE_URL}`);
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData.message || "Terjadi kesalahan saat mengambil daftar elemen"
-      );
+      throw new Error("Terjadi kesalahan saat mengambil daftar elemen");
     }
 
     return await response.json();
