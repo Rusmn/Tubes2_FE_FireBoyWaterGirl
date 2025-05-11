@@ -63,9 +63,9 @@ export const searchRecipe = async (params) => {
  * Mendapatkan daftar semua elemen yang tersedia
  * @returns {Promise<Array>} - Promise berisi array elemen
  */
-export const getAllElements = async () => {
+export const getElements = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}`);
+    const response = await fetch(`${API_BASE_URL}/elements`);
 
     if (!response.ok) {
       throw new Error("Terjadi kesalahan saat mengambil daftar elemen");
@@ -99,6 +99,6 @@ export const getServerStatus = async () => {
 
 export default {
   searchRecipe,
-  getAllElements,
+  getElements,
   getServerStatus,
 };
