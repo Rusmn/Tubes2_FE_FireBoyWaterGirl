@@ -11,10 +11,15 @@
   },
   "dependencies": {
     "cytoscape": "^3.32.0",
+    "cytoscape-canvas": "^3.0.1",
     "cytoscape-dagre": "^2.5.0",
     "react": "^19.0.0",
     "react-cytoscapejs": "^2.0.0",
-    "react-dom": "^19.0.0"
+    "react-d3-tree": "^3.6.6",
+    "react-dom": "^19.0.0",
+    "react-organizational-chart": "^2.2.1",
+    "react-zoom-pan-pinch": "^3.7.0",
+    "reactflow": "^11.11.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
