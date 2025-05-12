@@ -47,115 +47,121 @@ function App() {
     stableCombos
   );
 
-  const { allRecipeTrees, totalRecipePaths } = useMemo(() => {
-    function cartesianProduct(arrays) {
-      return arrays.reduce(
-        (a, b) =>
-          a.length === 0 || b.length === 0
-            ? []
-            : a.flatMap((d) =>
-                b.map((e) => (Array.isArray(d) ? [...d, e] : [d, e]))
-              ),
-        [[]]
-      );
-    }
-
-    const uniqueCombosMap = new Map();
-    stableCombos.forEach((combo) => {
-      if (!combo || !Array.isArray(combo.inputs)) return;
-      const key = combo.output + "|" + [...combo.inputs].sort().join("+");
-      if (!uniqueCombosMap.has(key)) uniqueCombosMap.set(key, combo);
-    });
-    const uniqueCombos = Array.from(uniqueCombosMap.values());
-
-    const uniqueRecipesByOutput = new Map();
-    uniqueCombos.forEach((combo) => {
-      if (!uniqueRecipesByOutput.has(combo.output)) {
-        uniqueRecipesByOutput.set(combo.output, []);
-      }
-      uniqueRecipesByOutput.get(combo.output).push(combo);
-    });
-
-    const BASIC_ELEMENTS = (() => {
-      const allOutputs = new Set(uniqueCombos.map((c) => c.output));
-      const allInputs = new Set(
-        uniqueCombos.flatMap((c) => (Array.isArray(c.inputs) ? c.inputs : []))
-      );
-      return [...allInputs].filter((input) => !allOutputs.has(input));
-    })();
-
-    function buildRecipeTreesFromUnique(currentElement) {
-      if (BASIC_ELEMENTS.includes(currentElement)) {
-        return [
-          { name: currentElement, attributes: { type: "Basic Element" } },
-        ];
-      }
-
-      const possibleRecipes = uniqueRecipesByOutput.get(currentElement) || [];
-      if (possibleRecipes.length === 0) return [];
-
-      const treesForCurrentElement = [];
-      possibleRecipes.forEach((recipe) => {
-        const childrenTreeOptions = recipe.inputs.map((input) =>
-          buildRecipeTreesFromUnique(input)
+  const { allRecipeTrees, totalRecipePaths, totalRecipesUnfiltered } =
+    useMemo(() => {
+      function cartesianProduct(arrays) {
+        return arrays.reduce(
+          (a, b) =>
+            a.length === 0 || b.length === 0
+              ? []
+              : a.flatMap((d) =>
+                  b.map((e) => (Array.isArray(d) ? [...d, e] : [d, e]))
+                ),
+          [[]]
         );
-        if (childrenTreeOptions.some((options) => options.length === 0)) return;
-        const allCombinedChildrenSets = cartesianProduct(childrenTreeOptions);
-        allCombinedChildrenSets.forEach((childrenCombination) => {
-          treesForCurrentElement.push({
-            name: recipe.output,
-            attributes: { type: "Combined" },
-            children: childrenCombination,
-          });
-        });
+      }
+
+      const uniqueCombosMap = new Map();
+      stableCombos.forEach((combo) => {
+        if (!combo || !Array.isArray(combo.inputs)) return;
+        const key = combo.output + "|" + [...combo.inputs].sort().join("+");
+        if (!uniqueCombosMap.has(key)) uniqueCombosMap.set(key, combo);
+      });
+      const uniqueCombos = Array.from(uniqueCombosMap.values());
+
+      const uniqueRecipesByOutput = new Map();
+      uniqueCombos.forEach((combo) => {
+        if (!uniqueRecipesByOutput.has(combo.output)) {
+          uniqueRecipesByOutput.set(combo.output, []);
+        }
+        uniqueRecipesByOutput.get(combo.output).push(combo);
       });
 
-      return treesForCurrentElement;
-    }
+      const BASIC_ELEMENTS = (() => {
+        const allOutputs = new Set(uniqueCombos.map((c) => c.output));
+        const allInputs = new Set(
+          uniqueCombos.flatMap((c) => (Array.isArray(c.inputs) ? c.inputs : []))
+        );
+        return [...allInputs].filter((input) => !allOutputs.has(input));
+      })();
 
-    function getTreeSignature(node) {
-      if (!node) return "";
-      let signature = node.name;
-      if (node.children && node.children.length > 0) {
-        const sortedChildrenSignatures = node.children
-          .map(getTreeSignature)
-          .sort()
-          .join(",");
-        signature += `(${sortedChildrenSignatures})`;
+      function buildRecipeTreesFromUnique(currentElement) {
+        if (BASIC_ELEMENTS.includes(currentElement)) {
+          return [
+            { name: currentElement, attributes: { type: "Basic Element" } },
+          ];
+        }
+
+        const possibleRecipes = uniqueRecipesByOutput.get(currentElement) || [];
+        if (possibleRecipes.length === 0) return [];
+
+        const treesForCurrentElement = [];
+        possibleRecipes.forEach((recipe) => {
+          const childrenTreeOptions = recipe.inputs.map((input) =>
+            buildRecipeTreesFromUnique(input)
+          );
+          if (childrenTreeOptions.some((options) => options.length === 0))
+            return;
+          const allCombinedChildrenSets = cartesianProduct(childrenTreeOptions);
+          allCombinedChildrenSets.forEach((childrenCombination) => {
+            treesForCurrentElement.push({
+              name: recipe.output,
+              attributes: { type: "Combined" },
+              children: childrenCombination,
+            });
+          });
+        });
+
+        return treesForCurrentElement;
       }
-      return signature;
-    }
 
-    const targetElement = currentSearch?.targetElement;
-    if (BASIC_ELEMENTS.includes(targetElement)) {
+      function getTreeSignature(node) {
+        if (!node) return "";
+        let signature = node.name;
+        if (node.children && node.children.length > 0) {
+          const sortedChildrenSignatures = node.children
+            .map(getTreeSignature)
+            .sort()
+            .join(",");
+          signature += `(${sortedChildrenSignatures})`;
+        }
+        return signature;
+      }
+
+      const targetElement = currentSearch?.targetElement;
+      if (BASIC_ELEMENTS.includes(targetElement)) {
+        return {
+          allRecipeTrees: [
+            {
+              name: targetElement,
+              attributes: { type: "Basic Element" },
+              children: [],
+            },
+          ],
+          totalRecipePaths: 1,
+        };
+      }
+
+      const allPossibleTrees = buildRecipeTreesFromUnique(targetElement);
+      const uniqueRecipeTrees = [];
+      const seenSignatures = new Set();
+      allPossibleTrees.forEach((tree) => {
+        const signature = getTreeSignature(tree);
+        if (!seenSignatures.has(signature)) {
+          seenSignatures.add(signature);
+          uniqueRecipeTrees.push(tree);
+        }
+      });
+
+      const totalFound = uniqueRecipeTrees.length;
+      const max = currentSearch?.maxRecipes ?? totalFound;
+
       return {
-        allRecipeTrees: [
-          {
-            name: targetElement,
-            attributes: { type: "Basic Element" },
-            children: [],
-          },
-        ],
-        totalRecipePaths: 1,
+        allRecipeTrees: uniqueRecipeTrees.slice(0, max),
+        totalRecipePaths: Math.min(totalFound, max),
+        totalRecipesUnfiltered: totalFound,
       };
-    }
-
-    const allPossibleTrees = buildRecipeTreesFromUnique(targetElement);
-    const uniqueRecipeTrees = [];
-    const seenSignatures = new Set();
-    allPossibleTrees.forEach((tree) => {
-      const signature = getTreeSignature(tree);
-      if (!seenSignatures.has(signature)) {
-        seenSignatures.add(signature);
-        uniqueRecipeTrees.push(tree);
-      }
-    });
-
-    return {
-      allRecipeTrees: uniqueRecipeTrees,
-      totalRecipePaths: uniqueRecipeTrees.length,
-    };
-  }, [stableCombos, currentSearch?.targetElement]);
+    }, [stableCombos, currentSearch?.targetElement]);
 
   const isBasicTarget = useMemo(() => {
     const allOutputs = new Set(stableCombos.map((c) => c.output));
@@ -197,7 +203,6 @@ function App() {
         (item) =>
           item.targetElement !== normalized.targetElement ||
           item.algorithm !== normalized.algorithm ||
-          item.isMultiple !== normalized.isMultiple ||
           item.liveUpdate !== normalized.liveUpdate
       );
       return [normalized, ...filtered.slice(0, 4)];
@@ -259,7 +264,7 @@ function App() {
           {results?.stats && (
             <SearchStats
               stats={results.stats}
-              totalRecipes={totalRecipePaths}
+              totalRecipes={totalRecipesUnfiltered}
             />
           )}
           {liveUpdateEnabled &&
@@ -301,7 +306,7 @@ function App() {
 
   const renderBook = () => (
     <div
-      className={`${paperCardBaseClasses} font-lora`}
+      className="p-6 rounded-xl shadow-xl"
       style={{ backgroundImage: `url(${paper})` }}
     >
       <Book combos={stableCombos} basicElements={basicElements} />

@@ -11,31 +11,34 @@ function SearchMetadata({ searchParams, currentPage, totalPages }) {
   return (
     <div className="mb-6 p-4 bg-amber-100/70 rounded-lg border border-yellow-600/50 text-sm font-merriweather shadow-md">
       <h3 className="font-bold mb-3 text-base text-yellow-950 tracking-wide">
-        📜 Search Parameters:
+        📜 Parameter Pencarian:
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className={metadataItemClasses}>
-          <span className={labelClasses}>🎯 Target Element:</span>
+          <span className={labelClasses}>🎯 Elemen Target:</span>
           <span className={valueClasses}>{searchParams.targetElement}</span>
         </div>
         <div className={metadataItemClasses}>
-          <span className={labelClasses}>🧠 Algorithm:</span>
+          <span className={labelClasses}>🧠 Algoritma:</span>
           <span className={valueClasses}>
             {searchParams.algorithm.toUpperCase()}
           </span>
         </div>
         <div className={metadataItemClasses}>
-          <span className={labelClasses}>🧩 Mode:</span>
-          <span className={valueClasses}>
-            {searchParams.isMultiple ? "Multiple Recipes" : "Shortest Path"}
-          </span>
+          <span className={labelClasses}>🔢 Jumlah Resep Maksimum:</span>
+          <span className={valueClasses}>{searchParams.maxRecipes}</span>
         </div>
-        {searchParams.isMultiple && (
-          <div className={metadataItemClasses}>
-            <span className={labelClasses}>🔢 Max Recipes:</span>
-            <span className={valueClasses}>{searchParams.maxRecipes}</span>
-          </div>
-        )}
+
+        {currentPage !== undefined &&
+          totalPages !== undefined &&
+          totalPages > 1 && (
+            <div className={`${metadataItemClasses} md:col-span-4`}>
+              <span className={labelClasses}>📖 Resep:</span>
+              <span className={valueClasses}>
+                Menampilkan resep {currentPage} dari {totalPages} resep yang diminta
+              </span>
+            </div>
+          )}
       </div>
     </div>
   );
