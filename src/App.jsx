@@ -1,5 +1,3 @@
-// App.jsx FINAL - tree visualisasi aman, book juga jalan
-
 import React, { useState, useEffect, lazy, Suspense, useMemo } from "react";
 import Navbar from "./components/Navbar";
 import NavigationBreadcrumbs from "./components/NavigationBreadcrumbs";
@@ -283,19 +281,10 @@ function App() {
                 </div>
               }
             >
-              {totalRecipePaths > 0 && currentTreeData ? (
-                <RecipeTree treeData={currentTreeData} />
-              ) : (
-                <div className="w-full h-[600px] bg-[#fef9c3] border border-yellow-700 rounded-xl shadow-inner flex items-center justify-center">
-                  <p className="text-yellow-800 font-merriweather italic text-center p-4">
-                    Tidak ada resep lengkap yang ditemukan untuk{" "}
-                    {currentSearch.targetElement}.
-                    {isBasicTarget
-                      ? " Ini adalah elemen dasar dan tidak memiliki resep kombinasi."
-                      : ""}
-                  </p>
-                </div>
-              )}
+              <RecipeTree
+                treeData={currentTreeData}
+                elementName={currentSearch?.targetElement}
+              />
             </Suspense>
           )}
           {totalRecipePaths > 1 && !liveUpdateEnabled && (
@@ -312,7 +301,7 @@ function App() {
 
   const renderBook = () => (
     <div
-      className="bg-cover p-6 rounded-xl shadow-xl"
+      className={`${paperCardBaseClasses} font-lora`}
       style={{ backgroundImage: `url(${paper})` }}
     >
       <Book combos={stableCombos} basicElements={basicElements} />
@@ -350,6 +339,7 @@ function App() {
         )}
         {viewMode === "book" && renderBook()}
       </main>
+
       <footer className="mt-auto py-8 px-4 text-center text-sm text-amber-100/80 bg-black/70 backdrop-blur-sm font-merriweather shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.2)]">
         <p className="tracking-wide">
           Little Alchemy Recipe Finder - Tugas Besar Strategi Algoritma
