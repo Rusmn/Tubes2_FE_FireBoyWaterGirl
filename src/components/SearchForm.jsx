@@ -22,6 +22,7 @@ function SearchForm({ onSearch }) {
       ...formState,
       mode: "multiple",
       liveUpdate,
+      
     });
   };
 

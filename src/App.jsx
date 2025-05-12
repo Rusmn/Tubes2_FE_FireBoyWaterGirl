@@ -142,24 +142,23 @@ function App() {
         };
       }
 
-      const allPossibleTrees = buildRecipeTreesFromUnique(targetElement);
-      const uniqueRecipeTrees = [];
-      const seenSignatures = new Set();
-      allPossibleTrees.forEach((tree) => {
-        const signature = getTreeSignature(tree);
-        if (!seenSignatures.has(signature)) {
-          seenSignatures.add(signature);
-          uniqueRecipeTrees.push(tree);
+      const rawTrees = buildRecipeTreesFromUnique(targetElement);
+      const uniqueTrees = [];
+      const seen = new Set();
+      rawTrees.forEach((t) => {
+        const sig = getTreeSignature(t);
+        if (!seen.has(sig)) {
+          seen.add(sig);
+          uniqueTrees.push(t);
         }
       });
 
-      const totalFound = uniqueRecipeTrees.length;
-      const max = currentSearch?.maxRecipes ?? totalFound;
-
+      const count = uniqueTrees.length;
+      const max = currentSearch?.maxRecipes ?? count
       return {
-        allRecipeTrees: uniqueRecipeTrees.slice(0, max),
-        totalRecipePaths: Math.min(totalFound, max),
-        totalRecipesUnfiltered: totalFound,
+        allRecipeTrees: uniqueTrees.slice(0, max),
+        totalRecipePaths: Math.min(count, max),
+        totalRecipesUnfiltered: count,
       };
     }, [stableCombos, currentSearch?.targetElement]);
 
@@ -197,6 +196,7 @@ function App() {
       targetElement:
         formData.targetElement.charAt(0).toUpperCase() +
         formData.targetElement.slice(1).toLowerCase(),
+      jumlahresep: formData.maxRecipes,
     };
     setSearchHistory((prev) => {
       const filtered = prev.filter(

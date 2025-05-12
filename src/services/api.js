@@ -3,8 +3,8 @@ const API_BASE_URL =
 
 export const searchRecipe = async (params) => {
   try {
-    const { targetElement, algorithm } = params;
-    const endpoint = `${API_BASE_URL}/${algorithm}/${targetElement}`;
+    const { targetElement, algorithm, jumlahresep } = params;
+    const endpoint = `${API_BASE_URL}/${algorithm}/${targetElement}?n=${jumlahresep}`;
 
     const response = await fetch(endpoint);
 
@@ -30,8 +30,8 @@ export const searchRecipe = async (params) => {
     return {
       combos: standardizedCombos,
       stats: {
-        time: Math.floor(Math.random() * 200) + 50,
-        nodesVisited: Array.isArray(data.combos) ? data.combos.length : 0,
+        time: Math.round(data.duration / 1000),
+        nodesVisited: data.nNode
       },
     };
   } catch (error) {
