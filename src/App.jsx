@@ -1,11 +1,15 @@
+// App.jsx FINAL - tree visualisasi aman, book juga jalan
+
 import React, { useState, useEffect, lazy, Suspense, useMemo } from "react";
 import Navbar from "./components/Navbar";
 import NavigationBreadcrumbs from "./components/NavigationBreadcrumbs";
 import SearchForm from "./components/SearchForm";
 import SearchMetadata from "./components/SearchMetadata";
 import SearchHistory from "./components/SearchHistory";
+import SearchStats from "./components/SearchStats";
 import Spinner from "./components/Spinner";
 import Book from "./components/Book";
+import RecipePagination from "./components/RecipePagination";
 import useRecipeSearch from "./hooks/useRecipeSearch";
 import useLiveUpdate from "./hooks/useLiveUpdate";
 import LiveUpdateVisualizer from "./components/LiveUpdateVisualizer";
@@ -18,12 +22,19 @@ const RecipeTree = lazy(() => import("./components/RecipeTree"));
 function App() {
   const [viewMode, setViewMode] = useState("form");
   const [searchHistory, setSearchHistory] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const { loading, error, results, currentSearch, search } = useRecipeSearch();
+  const stableCombos = useMemo(() => results?.combos || [], [results]);
 
-  const { loading, error, results, currentSearch, search, clearResults } =
-    useRecipeSearch();
+  const basicElements = useMemo(() => {
+    const allOutputs = new Set(stableCombos.map((c) => c.output));
+    const allInputs = new Set(
+      stableCombos.flatMap((c) => (Array.isArray(c.inputs) ? c.inputs : []))
+    );
+    return [...allInputs].filter((input) => !allOutputs.has(input));
+  }, [stableCombos]);
 
   const [liveUpdateEnabled, setLiveUpdateEnabled] = useState(false);
-
   const {
     updateHistory,
     currentStep,
@@ -34,257 +45,317 @@ function App() {
   } = useLiveUpdate(
     liveUpdateEnabled && currentSearch?.liveUpdate,
     currentSearch?.algorithm,
-    currentSearch
+    currentSearch,
+    stableCombos
   );
 
-  const stableCombos = useMemo(() => results?.combos || [], [results?.combos]);
+  const { allRecipeTrees, totalRecipePaths } = useMemo(() => {
+    function cartesianProduct(arrays) {
+      return arrays.reduce(
+        (a, b) =>
+          a.length === 0 || b.length === 0
+            ? []
+            : a.flatMap((d) =>
+                b.map((e) => (Array.isArray(d) ? [...d, e] : [d, e]))
+              ),
+        [[]]
+      );
+    }
+
+    const uniqueCombosMap = new Map();
+    stableCombos.forEach((combo) => {
+      if (!combo || !Array.isArray(combo.inputs)) return;
+      const key = combo.output + "|" + [...combo.inputs].sort().join("+");
+      if (!uniqueCombosMap.has(key)) uniqueCombosMap.set(key, combo);
+    });
+    const uniqueCombos = Array.from(uniqueCombosMap.values());
+
+    const uniqueRecipesByOutput = new Map();
+    uniqueCombos.forEach((combo) => {
+      if (!uniqueRecipesByOutput.has(combo.output)) {
+        uniqueRecipesByOutput.set(combo.output, []);
+      }
+      uniqueRecipesByOutput.get(combo.output).push(combo);
+    });
+
+    const BASIC_ELEMENTS = (() => {
+      const allOutputs = new Set(uniqueCombos.map((c) => c.output));
+      const allInputs = new Set(
+        uniqueCombos.flatMap((c) => (Array.isArray(c.inputs) ? c.inputs : []))
+      );
+      return [...allInputs].filter((input) => !allOutputs.has(input));
+    })();
+
+    function buildRecipeTreesFromUnique(currentElement) {
+      if (BASIC_ELEMENTS.includes(currentElement)) {
+        return [
+          { name: currentElement, attributes: { type: "Basic Element" } },
+        ];
+      }
+
+      const possibleRecipes = uniqueRecipesByOutput.get(currentElement) || [];
+      if (possibleRecipes.length === 0) return [];
+
+      const treesForCurrentElement = [];
+      possibleRecipes.forEach((recipe) => {
+        const childrenTreeOptions = recipe.inputs.map((input) =>
+          buildRecipeTreesFromUnique(input)
+        );
+        if (childrenTreeOptions.some((options) => options.length === 0)) return;
+        const allCombinedChildrenSets = cartesianProduct(childrenTreeOptions);
+        allCombinedChildrenSets.forEach((childrenCombination) => {
+          treesForCurrentElement.push({
+            name: recipe.output,
+            attributes: { type: "Combined" },
+            children: childrenCombination,
+          });
+        });
+      });
+
+      return treesForCurrentElement;
+    }
+
+    function getTreeSignature(node) {
+      if (!node) return "";
+      let signature = node.name;
+      if (node.children && node.children.length > 0) {
+        const sortedChildrenSignatures = node.children
+          .map(getTreeSignature)
+          .sort()
+          .join(",");
+        signature += `(${sortedChildrenSignatures})`;
+      }
+      return signature;
+    }
+
+    const targetElement = currentSearch?.targetElement;
+    if (BASIC_ELEMENTS.includes(targetElement)) {
+      return {
+        allRecipeTrees: [
+          {
+            name: targetElement,
+            attributes: { type: "Basic Element" },
+            children: [],
+          },
+        ],
+        totalRecipePaths: 1,
+      };
+    }
+
+    const allPossibleTrees = buildRecipeTreesFromUnique(targetElement);
+    const uniqueRecipeTrees = [];
+    const seenSignatures = new Set();
+    allPossibleTrees.forEach((tree) => {
+      const signature = getTreeSignature(tree);
+      if (!seenSignatures.has(signature)) {
+        seenSignatures.add(signature);
+        uniqueRecipeTrees.push(tree);
+      }
+    });
+
+    return {
+      allRecipeTrees: uniqueRecipeTrees,
+      totalRecipePaths: uniqueRecipeTrees.length,
+    };
+  }, [stableCombos, currentSearch?.targetElement]);
+
+  const isBasicTarget = useMemo(() => {
+    const allOutputs = new Set(stableCombos.map((c) => c.output));
+    const allInputs = new Set(
+      stableCombos.flatMap((c) => (Array.isArray(c.inputs) ? c.inputs : []))
+    );
+    const BASIC_ELEMENTS = [...allInputs].filter(
+      (input) => !allOutputs.has(input)
+    );
+    return BASIC_ELEMENTS.includes(currentSearch?.targetElement);
+  }, [stableCombos, currentSearch?.targetElement]);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("searchHistory");
-      if (saved) {
-        setSearchHistory(JSON.parse(saved));
-      }
-    } catch (err) {
-      console.error("Gagal memuat riwayat:", err);
-    }
+    setCurrentIndex(0);
+  }, [currentSearch, allRecipeTrees]);
+
+  const currentTreeData =
+    allRecipeTrees[currentIndex] || allRecipeTrees[0] || null;
+
+  useEffect(() => {
+    const saved = localStorage.getItem("searchHistory");
+    if (saved) setSearchHistory(JSON.parse(saved));
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
-    } catch (err) {
-      console.error("Gagal menyimpan riwayat:", err);
-    }
+    localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
   }, [searchHistory]);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")
-        return;
-
-      if (e.ctrlKey) {
-        if (e.key === "f") {
-          e.preventDefault();
-          setViewMode("form");
-        } else if (e.key === "r" && results) {
-          e.preventDefault();
-          setViewMode("results");
-        } else if (e.key === "s") {
-          e.preventDefault();
-          setViewMode("split");
-        } else if (e.key === "b") {
-          e.preventDefault();
-          setViewMode("book");
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [results]);
-
   const handleSearch = (formData) => {
+    if (isRunning) stopLiveUpdate();
     const normalized = {
       ...formData,
       targetElement:
         formData.targetElement.charAt(0).toUpperCase() +
         formData.targetElement.slice(1).toLowerCase(),
     };
-
-    setLiveUpdateEnabled(normalized.liveUpdate);
-
     setSearchHistory((prev) => {
       const filtered = prev.filter(
         (item) =>
           item.targetElement !== normalized.targetElement ||
           item.algorithm !== normalized.algorithm ||
-          item.isMultiple !== normalized.isMultiple
+          item.isMultiple !== normalized.isMultiple ||
+          item.liveUpdate !== normalized.liveUpdate
       );
       return [normalized, ...filtered.slice(0, 4)];
     });
-
     search(normalized);
-
+    setLiveUpdateEnabled(normalized.liveUpdate);
     if (viewMode !== "split") setViewMode("results");
   };
 
-  const paperCardBaseClasses =
-    "bg-cover bg-center p-6 sm:p-8 rounded-xl shadow-2xl h-full border-2 border-yellow-700/40 backdrop-blur-sm bg-opacity-[0.97]";
-  const pageTitleBaseClasses =
-    "text-3xl sm:text-4xl mb-8 sm:mb-10 font-bold text-center text-yellow-950 drop-shadow-xl tracking-wider";
+  const handlePathChange = (newIndex) => {
+    const maxIndex = totalRecipePaths > 0 ? totalRecipePaths - 1 : 0;
+    const validIndex = Math.max(0, Math.min(newIndex, maxIndex));
+    setCurrentIndex(validIndex);
+  };
 
   const renderForm = () => (
     <div
-      className={`${paperCardBaseClasses} font-lora`}
+      className="bg-cover p-6 rounded-xl shadow-xl"
       style={{ backgroundImage: `url(${paper})` }}
     >
-      <h2 className={`${pageTitleBaseClasses} font-cinzel`}>
+      <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
         Cari Recipe Elemen Alkimia
       </h2>
       <SearchForm onSearch={handleSearch} />
-      <div className="mt-8 sm:mt-10 sm: border-t-2 border-yellow-700/20">
+      <div className="mt-8 border-t border-gray-300 pt-6">
         <SearchHistory history={searchHistory} onSelect={handleSearch} />
       </div>
     </div>
   );
 
-  const renderResults = () => {
-    const targetElement = currentSearch?.targetElement;
-
-    return (
-      <div
-        className={`${paperCardBaseClasses} font-lora`}
-        style={{ backgroundImage: `url(${paper})` }}
-      >
-        {loading && <Spinner text="Sedang mencari recipe..." />}
-
-        {!loading && error && (
-          <div className="py-16 text-center text-red-700 font-merriweather">
-            <p className="text-xl mb-3">🚫 Terjadi Kesalahan</p>
-            <p className="text-sm mb-6 italic">{error}</p>
-            <button
-              onClick={() => setViewMode("form")}
-              className="px-4 py-2 bg-yellow-100 text-yellow-900 rounded-lg hover:bg-yellow-200 transition-all duration-150 ease-in-out border border-yellow-600"
+  const renderResults = () => (
+    <div
+      className="bg-cover p-6 rounded-xl shadow-xl"
+      style={{ backgroundImage: `url(${paper})` }}
+    >
+      {loading && <Spinner text="Sedang mencari recipe..." />}
+      {!loading && error && (
+        <div className="text-center text-red-700">
+          <p className="text-xl font-bold">🚫 Terjadi Kesalahan</p>
+          <p className="italic mt-2">{error}</p>
+          <button
+            onClick={() => setViewMode("form")}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Kembali ke Form
+          </button>
+        </div>
+      )}
+      {!loading && !error && currentSearch && (
+        <>
+          <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">
+            Hasil Ramuan untuk: {currentSearch.targetElement}
+          </h2>
+          <SearchMetadata
+            searchParams={currentSearch}
+            currentPage={totalRecipePaths > 0 ? currentIndex + 1 : 0}
+            totalPages={totalRecipePaths}
+          />
+          {results?.stats && (
+            <SearchStats
+              stats={results.stats}
+              totalRecipes={totalRecipePaths}
+            />
+          )}
+          {liveUpdateEnabled &&
+          currentSearch.liveUpdate &&
+          isRunning &&
+          partialCombos ? (
+            <LiveUpdateVisualizer
+              partialCombos={partialCombos}
+              targetElement={currentSearch.targetElement}
+              currentStep={currentStep}
+              setUpdateSpeed={setUpdateSpeed}
+              stopLiveUpdate={stopLiveUpdate}
+            />
+          ) : (
+            <Suspense
+              fallback={
+                <div className="text-center text-yellow-800 italic">
+                  Memuat visualisasi alkimia...
+                </div>
+              }
             >
-              Kembali ke Form
-            </button>
-          </div>
-        )}
-
-        {!loading &&
-          !error &&
-          currentSearch?.liveUpdate &&
-          liveUpdateEnabled && (
-            <>
-              <h2 className={`${pageTitleBaseClasses} font-cinzel`}>
-                Live Update untuk: {currentSearch.targetElement}
-              </h2>
-              <SearchMetadata searchParams={currentSearch} />
-              <LiveUpdateVisualizer
-                updateHistory={updateHistory}
-                currentStep={currentStep}
-                isRunning={isRunning}
-                partialCombos={partialCombos}
-                setUpdateSpeed={setUpdateSpeed}
-                stopLiveUpdate={stopLiveUpdate}
-                targetElement={currentSearch.targetElement}
-              />
-            </>
+              {totalRecipePaths > 0 && currentTreeData ? (
+                <RecipeTree treeData={currentTreeData} />
+              ) : (
+                <div className="w-full h-[600px] bg-[#fef9c3] border border-yellow-700 rounded-xl shadow-inner flex items-center justify-center">
+                  <p className="text-yellow-800 font-merriweather italic text-center p-4">
+                    Tidak ada resep lengkap yang ditemukan untuk{" "}
+                    {currentSearch.targetElement}.
+                    {isBasicTarget
+                      ? " Ini adalah elemen dasar dan tidak memiliki resep kombinasi."
+                      : ""}
+                  </p>
+                </div>
+              )}
+            </Suspense>
           )}
-
-        {!loading &&
-          !error &&
-          results &&
-          currentSearch &&
-          (!currentSearch.liveUpdate || !liveUpdateEnabled) &&
-          stableCombos.length > 0 && (
-            <>
-              <h2 className={`${pageTitleBaseClasses} font-cinzel`}>
-                Hasil Ramuan untuk: {targetElement}
-              </h2>
-              <SearchMetadata searchParams={currentSearch} />
-              <Suspense
-                fallback={
-                  <div className="py-10 text-center text-yellow-800/90 font-merriweather italic">
-                    Memuat visualisasi alkimia...
-                  </div>
-                }
-              >
-                <RecipeTree combos={stableCombos} target={targetElement} />
-              </Suspense>
-              <div className="mt-8 p-4 bg-yellow-50 rounded shadow-sm">
-                <p className="text-sm text-gray-700 mb-1">
-                  ⏱️ Waktu: <strong>{results.stats.time} ms</strong>
-                </p>
-                <p className="text-sm text-gray-700">
-                  🔍 Node dikunjungi:{" "}
-                  <strong>{results.stats.nodesVisited}</strong>
-                </p>
-              </div>
-            </>
+          {totalRecipePaths > 1 && !liveUpdateEnabled && (
+            <RecipePagination
+              currentPage={currentIndex}
+              totalPages={totalRecipePaths}
+              onPageChange={handlePathChange}
+            />
           )}
-
-        {!loading &&
-          !error &&
-          results &&
-          currentSearch &&
-          (!currentSearch.liveUpdate || !liveUpdateEnabled) &&
-          stableCombos.length === 0 && (
-            <div className="py-16 text-center text-yellow-800/90 font-merriweather">
-              <p className="text-xl mb-3">❗ Tidak Ada Recipe Ditemukan</p>
-              <p className="text-sm mb-6 italic">
-                Mohon coba elemen atau algoritma pencarian lain.
-              </p>
-              <button
-                onClick={() => setViewMode("form")}
-                className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all duration-150 ease-in-out shadow-lg"
-              >
-                Kembali ke Formulir
-              </button>
-            </div>
-          )}
-      </div>
-    );
-  };
+        </>
+      )}
+    </div>
+  );
 
   const renderBook = () => (
     <div
-      className={`${paperCardBaseClasses} font-lora`}
+      className="bg-cover p-6 rounded-xl shadow-xl"
       style={{ backgroundImage: `url(${paper})` }}
     >
-      <Book />
+      <Book combos={stableCombos} basicElements={basicElements} />
     </div>
   );
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center bg-fixed"
+      className="min-h-screen bg-cover flex flex-col"
       style={{ backgroundImage: `url(${wood})` }}
     >
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-amber-100 text-yellow-800 p-3 z-50 rounded-lg shadow-lg"
-      >
-        Langsung ke Konten Utama
-      </a>
-
       <Navbar
         viewMode={viewMode}
         setViewMode={setViewMode}
         currentSearch={currentSearch}
+        isRunningLiveUpdate={isRunning}
+        stopLiveUpdate={stopLiveUpdate}
       />
       <NavigationBreadcrumbs
         currentView={viewMode}
         onSwitchView={setViewMode}
       />
-
-      <main id="main-content" className="container mx-auto px-4 py-8 sm:py-12">
+      <main className="container mx-auto px-4 py-8 flex-grow">
         {viewMode === "form" && (
-          <div className="max-w-3xl lg:max-w-4xl mx-auto">{renderForm()}</div>
+          <div className="max-w-4xl mx-auto">{renderForm()}</div>
         )}
         {viewMode === "results" && (
-          <div className="max-w-3xl lg:max-w-4xl mx-auto">
-            {renderResults()}
-          </div>
+          <div className="max-w-4xl mx-auto">{renderResults()}</div>
         )}
         {viewMode === "split" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>{renderForm()}</div>
             <div>{renderResults()}</div>
           </div>
         )}
-        {viewMode === "book" && (
-          <div className="max-w-4xl lg:max-w-6xl mx-auto">{renderBook()}</div>
-        )}
+        {viewMode === "book" && renderBook()}
       </main>
-
       <footer className="mt-auto py-8 px-4 text-center text-sm text-amber-100/80 bg-black/70 backdrop-blur-sm font-merriweather shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.2)]">
         <p className="tracking-wide">
           Little Alchemy Recipe Finder - Tugas Besar Strategi Algoritma
         </p>
         <p className="mt-2 text-xs text-amber-100/70">
-          Keyboard Shortcuts:{" "}
+          Keyboard Shortcuts:
           <span className="font-mono bg-black/25 rounded-sm px-1.5">
             Ctrl+F
           </span>{" "}

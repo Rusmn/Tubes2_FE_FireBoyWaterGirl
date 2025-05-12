@@ -1,71 +1,34 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React from "react";
 import Tree from "react-d3-tree";
 
-const BASIC_ELEMENTS = ["Air", "Water", "Fire", "Earth"];
-
-function convertCombosToTreeData(combos, target) {
-  const comboMap = new Map();
-  combos.forEach((combo) => comboMap.set(combo.id, { ...combo, children: [] }));
-
-  combos.forEach((combo) => {
-    if (combo.parentId !== -1 && comboMap.has(combo.parentId)) {
-      comboMap.get(combo.parentId).children.push(combo);
-    }
-  });
-
-  const rootCombo = combos.find(
-    (c) => c.output === target && c.parentId === -1
-  );
-
-  if (!rootCombo) return null;
-
-  function buildNode(combo) {
-    return {
-      name: combo.output,
-      attributes: {
-        type: BASIC_ELEMENTS.includes(combo.output)
-          ? "Basic Element"
-          : "Combined",
-      },
-      children: combo.inputs.map((input) => {
-        const childCombo = combos.find(
-          (c) => c.output === input && c.parentId === combo.id
-        );
-
-        if (childCombo) {
-          return buildNode(childCombo);
-        } else {
-          return {
-            name: input,
-            attributes: {
-              type: BASIC_ELEMENTS.includes(input)
-                ? "Basic Element"
-                : "Unknown",
-            },
-          };
-        }
-      }),
-    };
+// Komponen RecipeTree sekarang hanya menerima prop 'treeData'
+const RecipeTree = ({ treeData }) => {
+  // Jika treeData adalah null atau undefined, tampilkan pesan
+  if (!treeData) {
+    return (
+      <div className="w-full h-[600px] bg-[#fef9c3] border border-yellow-700 rounded-xl shadow-xl flex items-center justify-center">
+        <p className="text-yellow-800 font-merriweather italic text-center p-4">
+          Tidak ada data resep yang dapat divisualisasikan untuk jalur ini.
+        </p>
+      </div>
+    );
   }
 
-  return buildNode(rootCombo);
-}
-
-export default function RecipeTree({ combos, target }) {
-  const treeData = useMemo(
-    () => convertCombosToTreeData(combos, target),
-    [combos, target]
-  );
-
+  // Render komponen Tree dengan data yang sudah disediakan
   return (
     <div className="w-full h-[600px] bg-[#fef9c3] border border-yellow-700 rounded-xl shadow-xl">
       <Tree
         data={treeData}
-        orientation="vertical"
-        pathFunc="step"
-        zoomable
-        separation={{ siblings: 1.5, nonSiblings: 2 }}
+        orientation="vertical" // Tata letak vertikal (akar di atas)
+        pathFunc="step" // Gaya garis penghubung antar node
+        zoomable // Memungkinkan zoom dan pan
+        separation={{ siblings: 1.5, nonSiblings: 2 }} // Jarak antar node
+        // Anda bisa menambahkan prop kustomisasi lain di sini, misalnya:
+        // nodeSize={{ x: 120, y: 120 }} // Ukuran node
+        // translate={{ x: window.innerWidth / 2, y: 100 }} // Posisi awal tree
       />
     </div>
   );
-}
+};
+
+export default RecipeTree;

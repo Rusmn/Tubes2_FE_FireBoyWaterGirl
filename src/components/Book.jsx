@@ -91,7 +91,7 @@ function Book() {
   if (loading) {
     return (
       <>
-        <h2 className={pageTitleClasses}>📚 Pustaka Elemen Alkimia</h2>
+        <h2 className={pageTitleClasses}>📚 Pustaka Elemen</h2>
         <Spinner text="Memuat elemen alkimia..." />
       </>
     );
@@ -99,7 +99,7 @@ function Book() {
 
   return (
     <>
-      <h2 className={pageTitleClasses}>📚 Pustaka Elemen Alkimia</h2>
+      <h2 className={pageTitleClasses}>📚 Pustaka Elemen</h2>
 
       {error && (
         <div className="mb-6 p-4 bg-yellow-800/30 border border-yellow-600/40 rounded-lg text-yellow-100 font-merriweather text-sm">

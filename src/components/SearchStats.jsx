@@ -1,6 +1,6 @@
 import React from "react";
 
-function SearchStats({ stats }) {
+function SearchStats({ stats, totalRecipes }) {
   if (!stats) return null;
 
   const { time, nodesVisited } = stats;
@@ -11,8 +11,8 @@ function SearchStats({ stats }) {
   const valueClasses = "font-bold tracking-wide text-yellow-950 mt-0.5 text-lg";
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-amber-100/70 p-4 rounded-lg border border-yellow-600/50 shadow-md font-merriweather mb-6">
-      <h3 className="font-bold text-base text-yellow-950 tracking-wide sm:col-span-2 mb-1">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-amber-100/70 p-4 rounded-lg border border-yellow-600/50 shadow-md font-merriweather mb-6">
+      <h3 className="font-bold text-base text-yellow-950 tracking-wide sm:col-span-3 mb-1">
         📊 Statistik Pencarian:
       </h3>
       <div className={statItemClasses}>
@@ -24,6 +24,10 @@ function SearchStats({ stats }) {
       <div className={statItemClasses}>
         <span className={labelClasses}>🧭 Node Dikunjungi:</span>
         <span className={valueClasses}>{nodesVisited.toLocaleString()}</span>
+      </div>
+      <div className={statItemClasses}>
+        <span className={labelClasses}>🧩 Total Resep Ditemukan:</span>
+        <span className={valueClasses}>{totalRecipes}</span>
       </div>
     </div>
   );

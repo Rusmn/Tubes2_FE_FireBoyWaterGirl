@@ -1,6 +1,6 @@
 import React from "react";
 
-function SearchMetadata({ searchParams }) {
+function SearchMetadata({ searchParams, currentPage, totalPages }) {
   if (!searchParams) return null;
 
   const metadataItemClasses =
@@ -11,15 +11,15 @@ function SearchMetadata({ searchParams }) {
   return (
     <div className="mb-6 p-4 bg-amber-100/70 rounded-lg border border-yellow-600/50 text-sm font-merriweather shadow-md">
       <h3 className="font-bold mb-3 text-base text-yellow-950 tracking-wide">
-        📜 Parameter Pencarian:
+        📜 Search Parameters:
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className={metadataItemClasses}>
-          <span className={labelClasses}>🎯 Elemen Target:</span>
+          <span className={labelClasses}>🎯 Target Element:</span>
           <span className={valueClasses}>{searchParams.targetElement}</span>
         </div>
         <div className={metadataItemClasses}>
-          <span className={labelClasses}>🧠 Algoritma:</span>
+          <span className={labelClasses}>🧠 Algorithm:</span>
           <span className={valueClasses}>
             {searchParams.algorithm.toUpperCase()}
           </span>
