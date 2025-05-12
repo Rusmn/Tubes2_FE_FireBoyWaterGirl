@@ -1,20 +1,18 @@
 import React, { useState } from "react";
 import AlgorithmSelector from "./AlgorithmSelector";
 import ElementInput from "./ElementInput";
-import ModeToggle from "./ModeToggle";
 import RecipeCounter from "./RecipeCounter";
 import { DEFAULT_FORM_VALUES } from "../utils/Constants";
 
 function SearchForm({ onSearch }) {
-  const [formState, setFormState] = useState(DEFAULT_FORM_VALUES);
+  const [formState, setFormState] = useState({
+    ...DEFAULT_FORM_VALUES,
+    isMultiple: true,
+  });
   const [liveUpdate, setLiveUpdate] = useState(false);
 
   const handleChange = (field, value) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleModeToggle = (isMultiple) => {
-    setFormState((prev) => ({ ...prev, isMultiple }));
   };
 
   const handleSubmit = (e) => {
@@ -22,7 +20,7 @@ function SearchForm({ onSearch }) {
     if (!formState.targetElement) return;
     onSearch({
       ...formState,
-      mode: formState.isMultiple ? "multiple" : "shortest",
+      mode: "multiple",
       liveUpdate,
     });
   };
@@ -45,16 +43,10 @@ function SearchForm({ onSearch }) {
       />
 
       <div className={sectionWrapperClasses}>
-        <ModeToggle
-          isMultiple={formState.isMultiple}
-          onChange={handleModeToggle}
+        <RecipeCounter
+          value={formState.maxRecipes}
+          onChange={(value) => handleChange("maxRecipes", value)}
         />
-        {formState.isMultiple && (
-          <RecipeCounter
-            value={formState.maxRecipes}
-            onChange={(value) => handleChange("maxRecipes", value)}
-          />
-        )}
       </div>
 
       <div className={sectionWrapperClasses}>
@@ -117,9 +109,7 @@ function SearchForm({ onSearch }) {
       <div className="mt-6 p-3.5 bg-amber-50/50 text-xs text-yellow-950/80 border-2 border-yellow-700/20 rounded-xl shadow-md font-nunitoSans space-y-2 tracking-wide">
         <div className="flex justify-between">
           <strong className="text-yellow-950">Mode:</strong>
-          <span>
-            {formState.isMultiple ? "Multiple Recipes" : "Shortest Path"}
-          </span>
+          <span>Multiple Recipes</span>
         </div>
         <hr className="border-yellow-700/20" />
         <div className="flex justify-between">
