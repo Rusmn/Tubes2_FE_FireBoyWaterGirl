@@ -216,6 +216,7 @@ function App() {
     setLiveDone(false);
     search(normalized, () => setLiveDone(true));
     setViewMode("results");
+
   };
 
   const handlePathChange = (newIndex) => {
