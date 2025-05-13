@@ -21,9 +21,9 @@ function SearchForm({ onSearch }) {
     e.preventDefault();
     if (!formState.targetElement) return;
 
-    const safeBatas = liveUpdate ? 1 : formState.batas;
-    const safeMax = liveUpdate ? 1 : formState.maxRecipes;
-    const safeAlgorithm = liveUpdate ? "dfs" : formState.algorithm;
+    const safeBatas = formState.batas;
+    const safeMax = formState.maxRecipes;
+    const safeAlgorithm = formState.algorithm;
 
     onSearch({
       ...formState,
@@ -63,7 +63,7 @@ function SearchForm({ onSearch }) {
         />
         <p className="text-xs text-yellow-700 italic mt-1">
           {liveUpdate
-            ? "Live Update aktif: jumlah dikunci ke 1"
+            ? "Live Update aktif: jumlah default ke 1"
             : "Ini adalah jumlah maksimal resep yang akan divisualisasikan."}
         </p>
       </div>
@@ -79,13 +79,13 @@ function SearchForm({ onSearch }) {
         />
         <p className="text-xs text-yellow-700 italic mt-1">
           {liveUpdate
-            ? "Live Update aktif: batas dikunci ke 1"
+            ? "Live Update aktif: batas default ke 1"
             : "Ini adalah jumlah maksimal data yang akan diminta dari server."}
         </p>
       </div>
 
       <div className={sectionWrapperClasses}>
-        <h3 className={sectionTitleClasses}>⚙️ Fitur Tambahan</h3>
+        <h3 className={sectionTitleClasses}>⚙️ Live Update</h3>
         <div className="space-y-3">
           <label className="flex items-center text-yellow-900 cursor-pointer group py-1">
             <input
@@ -111,8 +111,7 @@ function SearchForm({ onSearch }) {
                 </p>
                 <ul className="space-y-1 text-yellow-800">
                   <li>• Live update akan menampilkan proses secara bertahap</li>
-                  <li>• Kecepatan dapat diatur selama proses pencarian</li>
-                  <li>• Jumlah dan batas resep dikunci ke 1</li>
+                  <li>• Jumlah dan batas resep default ke 1</li>
                 </ul>
               </div>
             </div>

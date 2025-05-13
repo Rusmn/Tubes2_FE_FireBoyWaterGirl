@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { searchRecipe } from "../services/api";
 
+const API_BASE_WS_URL = `wss://${import.meta.env.VITE_API_URL}`;
+
 function useRecipeSearch() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -9,7 +11,7 @@ function useRecipeSearch() {
   const [isLiveUpdating, setIsLiveUpdating] = useState(false);
   const [liveCombos, setLiveCombos] = useState([]);
 
-  const search = useCallback(async (searchParams) => {
+  const search = useCallback(async (searchParams, onFinish) => {
     const { targetElement, algorithm, liveUpdate, n = 10 } = searchParams;
 
     if (!targetElement || !algorithm) {
@@ -22,10 +24,10 @@ function useRecipeSearch() {
     setResults(null);
     setCurrentSearch(searchParams);
 
-    if (liveUpdate && algorithm === "dfs") {
+    if (liveUpdate) {
       try {
         const socket = new WebSocket(
-          `ws://localhost:8080/api/dfs/live/${targetElement}?n=${n}`
+          `${API_BASE_WS_URL}/ws/${algorithm}/${targetElement}?n=${n}`
         );
 
         let comboBuffer = [];
@@ -41,7 +43,6 @@ function useRecipeSearch() {
           comboBuffer.push(data);
           setLiveCombos([...comboBuffer]);
 
-          // nonaktifkan loading segera setelah data pertama masuk
           if (comboBuffer.length === 1) {
             setLoading(false);
           }
@@ -64,6 +65,7 @@ function useRecipeSearch() {
             },
           });
           setIsLiveUpdating(false);
+          if (typeof onFinish === "function") onFinish();
         };
       } catch (err) {
         console.error("Live search error:", err);
@@ -75,6 +77,7 @@ function useRecipeSearch() {
       try {
         const data = await searchRecipe(searchParams);
         setResults(data);
+        if (typeof onFinish === "function") onFinish();
       } catch (err) {
         console.error("Search error:", err);
         setError(err.message || "Terjadi kesalahan saat mencari recipe");

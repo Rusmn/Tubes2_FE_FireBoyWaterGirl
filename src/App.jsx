@@ -42,9 +42,15 @@ function App() {
   }, [stableCombos]);
 
   const [liveUpdateEnabled, setLiveUpdateEnabled] = useState(false);
+  const [liveDone, setLiveDone] = useState(false);
 
   const { allRecipeTrees, totalRecipePaths, totalRecipesUnfiltered } =
     useMemo(() => {
+      const source =
+        liveUpdateEnabled && currentSearch?.liveUpdate
+          ? liveCombos
+          : stableCombos;
+
       function cartesianProduct(arrays) {
         return arrays.reduce(
           (a, b) =>
@@ -58,7 +64,7 @@ function App() {
       }
 
       const uniqueCombosMap = new Map();
-      stableCombos.forEach((combo) => {
+      source.forEach((combo) => {
         if (!combo || !Array.isArray(combo.inputs)) return;
         const key = combo.output + "|" + [...combo.inputs].sort().join("+");
         if (!uniqueCombosMap.has(key)) uniqueCombosMap.set(key, combo);
@@ -165,7 +171,12 @@ function App() {
         totalRecipePaths: Math.min(totalFound, max),
         totalRecipesUnfiltered: totalFound,
       };
-    }, [stableCombos, currentSearch?.targetElement]);
+    }, [
+      stableCombos,
+      liveCombos,
+      currentSearch?.targetElement,
+      liveUpdateEnabled,
+    ]);
 
   const currentTreeData =
     allRecipeTrees[currentIndex] || allRecipeTrees[0] || null;
@@ -189,7 +200,6 @@ function App() {
       targetElement:
         formData.targetElement.charAt(0).toUpperCase() +
         formData.targetElement.slice(1).toLowerCase(),
-      maxRecipes: formData.liveUpdate ? 1 : formData.maxRecipes,
     };
 
     setSearchHistory((prev) => {
@@ -202,8 +212,9 @@ function App() {
       return [normalized, ...filtered.slice(0, 4)];
     });
 
-    search(normalized);
     setLiveUpdateEnabled(normalized.liveUpdate);
+    setLiveDone(false);
+    search(normalized, () => setLiveDone(true));
     setViewMode("results");
   };
 
@@ -219,7 +230,7 @@ function App() {
       style={{ backgroundImage: `url(${paper})` }}
     >
       <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
-        Cari Recipe Elemen Alkimia
+        Cari Resep Elemen
       </h2>
       <SearchForm onSearch={handleSearch} />
       <div className="mt-8 border-t border-gray-300 pt-6">
@@ -249,7 +260,7 @@ function App() {
       {!loading && !error && currentSearch && (
         <>
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">
-            Hasil Ramuan untuk: {currentSearch.targetElement}
+            Hasil Resep untuk: {currentSearch.targetElement}
           </h2>
           <SearchMetadata
             searchParams={currentSearch}
@@ -262,7 +273,7 @@ function App() {
               totalRecipes={totalRecipesUnfiltered}
             />
           )}
-          {liveUpdateEnabled && currentSearch.liveUpdate && isLiveUpdating ? (
+          {liveUpdateEnabled && currentSearch.liveUpdate && !liveDone ? (
             <LiveUpdateVisualizer
               partialCombos={liveCombos}
               targetElement={currentSearch.targetElement}
@@ -281,7 +292,7 @@ function App() {
               />
             </Suspense>
           )}
-          {totalRecipePaths > 1 && !liveUpdateEnabled && (
+          {totalRecipePaths > 1 && (
             <RecipePagination
               currentPage={currentIndex}
               totalPages={totalRecipePaths}
@@ -334,10 +345,10 @@ function App() {
 
       <footer className="mt-auto py-8 px-4 text-center text-sm text-amber-100/80 bg-black/70 backdrop-blur-sm font-merriweather shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.2)]">
         <p className="tracking-wide">
-          Little Alchemy Recipe Finder - Tugas Besar Strategi Algoritma
+          Little Alchemy Recipe Finder - Fire Boy Water Girl
         </p>
         <p className="mt-2 text-xs text-amber-100/70">
-          Keyboard Shortcuts:
+          Shortcuts:
           <span className="font-mono bg-black/25 rounded-sm px-1.5">
             Ctrl+F
           </span>{" "}
@@ -354,6 +365,17 @@ function App() {
             Ctrl+B
           </span>{" "}
           (Book)
+        </p>
+        <p className="mt-2 text-xs text-amber-100/70">
+          Muh. Rusmin Nurwadin
+          <span className="font-mono bg-black/25 rounded-sm px-1.5">
+            -
+          </span>{" "}
+          Aryo Bama Wiratama
+          <span className="font-mono bg-black/25 rounded-sm px-1.5">
+            -
+          </span>{" "}
+          Reza Ahmad Syarif
         </p>
       </footer>
     </div>

@@ -18,7 +18,9 @@ function SearchStats({ stats, totalRecipes }) {
       <div className={statItemClasses}>
         <span className={labelClasses}>⏱ Waktu Pencarian:</span>
         <span className={valueClasses}>
-          {time < 1000 ? `${time} ms` : `${(time / 1000).toFixed(2)} detik`}
+          {time < 10_000_000
+            ? `${(time / 10_000).toFixed(0)} ms`
+            : `${(time / 10_000_000).toFixed(2)} detik`}
         </span>
       </div>
       <div className={statItemClasses}>

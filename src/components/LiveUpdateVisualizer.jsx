@@ -17,7 +17,7 @@ function LiveUpdateVisualizer({ partialCombos, targetElement }) {
 
       <div>
         <h4 className="font-semibold mb-2 text-yellow-950 font-merriweather">
-          🌳 Visualisasi Progresif:
+          🌳 Visualisasi Progres:
         </h4>
         <div className="bg-amber-50/80 rounded-lg border-2 border-yellow-600/50 shadow-lg min-h-[240px] flex flex-wrap gap-2 p-4">
           {Array.isArray(partialCombos) && partialCombos.length > 0 ? (
