@@ -92,7 +92,7 @@ function Book() {
     return (
       <>
         <h2 className={pageTitleClasses}>📚 Pustaka Elemen</h2>
-        <Spinner text="Memuat elemen alkimia..." />
+        <Spinner text="Memuat elemen..." />
       </>
     );
   }

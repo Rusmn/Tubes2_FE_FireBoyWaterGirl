@@ -13,10 +13,8 @@ function Spinner({ text = "Sedang memuat..." }) {
         {/* Lingkaran luar */}
         <div className="absolute inset-0 rounded-full border-4 border-t-amber-500 border-r-amber-400 border-b-amber-300 border-l-yellow-200 animate-spin"></div>
 
-        {/* Lingkaran dalam */}
         <div className="absolute inset-3 rounded-full border-4 border-r-amber-600 border-t-amber-500 border-l-amber-400 border-b-amber-300 animate-spin-slow"></div>
 
-        {/* Simbol alkimia */}
         <div className="absolute inset-0 flex items-center justify-center text-yellow-800 text-2xl">
           ✶
         </div>
@@ -25,7 +23,7 @@ function Spinner({ text = "Sedang memuat..." }) {
       <p className="mt-6 text-lg text-yellow-900 animate-pulse">{text}</p>
 
       <p className="mt-2 text-sm text-yellow-700/80 italic">
-        Mencoba mengubah elemen menjadi emas...
+        Fire boy dan Water girl sedah berusaha...
       </p>
     </div>
   );

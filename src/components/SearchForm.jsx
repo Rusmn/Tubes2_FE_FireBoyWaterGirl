@@ -8,8 +8,8 @@ function SearchForm({ onSearch }) {
   const [formState, setFormState] = useState({
     ...DEFAULT_FORM_VALUES,
     isMultiple: true,
-    maxRecipes: 10,
-    batas: 10,
+    maxRecipes: 5,
+    batas: 5,
   });
   const [liveUpdate, setLiveUpdate] = useState(false);
 
@@ -62,9 +62,7 @@ function SearchForm({ onSearch }) {
           disabled={liveUpdate}
         />
         <p className="text-xs text-yellow-700 italic mt-1">
-          {liveUpdate
-            ? "Live Update aktif: jumlah default ke 1"
-            : "Ini adalah jumlah maksimal resep yang akan divisualisasikan."}
+          Ini adalah jumlah maksimal resep yang akan divisualisasikan.
         </p>
       </div>
 
@@ -78,9 +76,7 @@ function SearchForm({ onSearch }) {
           disabled={liveUpdate}
         />
         <p className="text-xs text-yellow-700 italic mt-1">
-          {liveUpdate
-            ? "Live Update aktif: batas default ke 1"
-            : "Ini adalah jumlah maksimal data yang akan diminta dari server."}
+          Ini adalah jumlah maksimal data yang akan diminta dari server.
         </p>
       </div>
 
@@ -101,17 +97,13 @@ function SearchForm({ onSearch }) {
 
           {liveUpdate && (
             <div className="ml-7 space-y-2">
-              <p className="text-xs text-yellow-800/90 italic font-nunitoSans">
-                Visualisasi tree akan diperbarui secara bertahap selama
-                pencarian.
-              </p>
               <div className="bg-yellow-100/80 p-3 rounded-lg border border-yellow-600/30 text-xs">
                 <p className="font-semibold text-yellow-950 mb-1">
                   ℹ️ Keterangan:
                 </p>
                 <ul className="space-y-1 text-yellow-800">
                   <li>• Live update akan menampilkan proses secara bertahap</li>
-                  <li>• Jumlah dan batas resep default ke 1</li>
+                  <li>• Resep akan ditampilkan setelah live update</li>
                 </ul>
               </div>
             </div>
@@ -130,7 +122,7 @@ function SearchForm({ onSearch }) {
       >
         {!formState.targetElement
           ? "PILIH ELEMEN TARGET DAHULU"
-          : "🔍 CARI RESEP ALKIMIA"}
+          : "🔍 CARI RESEP"}
       </button>
 
       <div className="mt-6 p-3.5 bg-amber-50/50 text-xs text-yellow-950/80 border-2 border-yellow-700/20 rounded-xl shadow-md font-nunitoSans space-y-2 tracking-wide">
@@ -145,11 +137,11 @@ function SearchForm({ onSearch }) {
         </div>
         <div className="flex justify-between">
           <strong className="text-yellow-950">Batas (n):</strong>
-          <span>{liveUpdate ? 1 : formState.batas}</span>
+          <span>{formState.batas}</span>
         </div>
         <div className="flex justify-between">
           <strong className="text-yellow-950">Jumlah ditampilkan:</strong>
-          <span>{liveUpdate ? 1 : formState.maxRecipes}</span>
+          <span>{formState.maxRecipes}</span>
         </div>
         {liveUpdate && (
           <>

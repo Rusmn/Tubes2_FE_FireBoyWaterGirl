@@ -3,10 +3,10 @@ import React from "react";
 function RecipeCounter({ value, onChange }) {
   const handleChange = (e) => {
     const newValue = parseInt(e.target.value, 10);
-    onChange(isNaN(newValue) ? 1 : Math.max(1, Math.min(100, newValue)));
+    onChange(isNaN(newValue) ? 1 : Math.max(1, Math.min(50, newValue)));
   };
 
-  const increment = () => onChange(Math.min(100, value + 1));
+  const increment = () => onChange(Math.min(50, value + 1));
   const decrement = () => onChange(Math.max(1, value - 1));
 
   return (
@@ -25,7 +25,7 @@ function RecipeCounter({ value, onChange }) {
           id="recipe-counter"
           type="number"
           min="1"
-          max="20"
+          max="50"
           value={value}
           onChange={handleChange}
           className="w-16 text-center p-1 border-t border-b border-yellow-600 text-yellow-900 bg-yellow-50 focus:outline-none"
@@ -33,13 +33,13 @@ function RecipeCounter({ value, onChange }) {
         <button
           type="button"
           onClick={increment}
-          disabled={value >= 20}
+          disabled={value >= 50}
           className="px-3 py-1 bg-yellow-200 hover:bg-yellow-300 text-yellow-900 border border-yellow-600 rounded-r-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Tambah"
         >
           +
         </button>
-        <span className="ml-2 text-sm text-yellow-800">(1-100)</span>
+        <span className="ml-2 text-sm text-yellow-800">(1-50)</span>
       </div>
     </div>
   );

@@ -282,7 +282,7 @@ function App() {
             <Suspense
               fallback={
                 <div className="text-center text-yellow-800 italic">
-                  Memuat visualisasi alkimia...
+                  Memuat visualisasi...
                 </div>
               }
             >
