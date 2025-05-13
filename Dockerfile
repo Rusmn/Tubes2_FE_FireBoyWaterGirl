@@ -5,18 +5,18 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Salin semua file termasuk .env
+# Tambahkan ARG sebelum build
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 COPY . .
 
 # Build untuk production
 RUN npm run build
 
-# Stage 2: Serve build hasil via NGINX
+# Stage 2: Serve build via NGINX
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-
-# (Opsional) konfigurasi nginx
-# COPY nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
