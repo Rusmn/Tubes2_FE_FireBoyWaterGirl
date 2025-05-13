@@ -1,10 +1,18 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
+/**
+ * Melakukan pencarian resep dari API backend
+ * @param {Object} params - Parameter pencarian dari form
+ * @param {string} params.targetElement - Elemen target
+ * @param {string} params.algorithm - Algoritma pencarian
+ * @param {number} params.n - Batas jumlah resep yang diambil dari API
+ */
+
 export const searchRecipe = async (params) => {
   try {
-    const { targetElement, algorithm } = params;
-    const endpoint = `${API_BASE_URL}/${algorithm}/${targetElement}`;
+    const { targetElement, algorithm, n = 10 } = params; // default n = 10
+    const endpoint = `${API_BASE_URL}/${algorithm}/${targetElement}?n=${n}`;
 
     const response = await fetch(endpoint);
 
@@ -30,8 +38,8 @@ export const searchRecipe = async (params) => {
     return {
       combos: standardizedCombos,
       stats: {
-        time: Math.floor(Math.random() * 200) + 50,
-        nodesVisited: Array.isArray(data.combos) ? data.combos.length : 0,
+        time: data.duration,
+        nodesVisited: data.nNode,
       },
     };
   } catch (error) {

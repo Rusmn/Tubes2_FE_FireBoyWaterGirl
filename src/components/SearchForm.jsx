@@ -8,6 +8,8 @@ function SearchForm({ onSearch }) {
   const [formState, setFormState] = useState({
     ...DEFAULT_FORM_VALUES,
     isMultiple: true,
+    maxRecipes: 10,
+    batas: 10,
   });
   const [liveUpdate, setLiveUpdate] = useState(false);
 
@@ -18,10 +20,18 @@ function SearchForm({ onSearch }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formState.targetElement) return;
+
+    const safeBatas = liveUpdate ? 1 : formState.batas;
+    const safeMax = liveUpdate ? 1 : formState.maxRecipes;
+    const safeAlgorithm = liveUpdate ? "dfs" : formState.algorithm;
+
     onSearch({
       ...formState,
+      algorithm: safeAlgorithm,
       mode: "multiple",
       liveUpdate,
+      n: safeBatas,
+      maxRecipes: safeMax,
     });
   };
 
@@ -43,10 +53,35 @@ function SearchForm({ onSearch }) {
       />
 
       <div className={sectionWrapperClasses}>
+        <label className="block mb-2 font-semibold text-yellow-900">
+          🔢 Jumlah Resep Maksimum:
+        </label>
         <RecipeCounter
           value={formState.maxRecipes}
           onChange={(value) => handleChange("maxRecipes", value)}
+          disabled={liveUpdate}
         />
+        <p className="text-xs text-yellow-700 italic mt-1">
+          {liveUpdate
+            ? "Live Update aktif: jumlah dikunci ke 1"
+            : "Ini adalah jumlah maksimal resep yang akan divisualisasikan."}
+        </p>
+      </div>
+
+      <div className={sectionWrapperClasses}>
+        <label className="block mb-2 font-semibold text-yellow-900">
+          🛑 Batas Jumlah Resep dari API:
+        </label>
+        <RecipeCounter
+          value={formState.batas}
+          onChange={(value) => handleChange("batas", value)}
+          disabled={liveUpdate}
+        />
+        <p className="text-xs text-yellow-700 italic mt-1">
+          {liveUpdate
+            ? "Live Update aktif: batas dikunci ke 1"
+            : "Ini adalah jumlah maksimal data yang akan diminta dari server."}
+        </p>
       </div>
 
       <div className={sectionWrapperClasses}>
@@ -70,21 +105,14 @@ function SearchForm({ onSearch }) {
                 Visualisasi tree akan diperbarui secara bertahap selama
                 pencarian.
               </p>
-
               <div className="bg-yellow-100/80 p-3 rounded-lg border border-yellow-600/30 text-xs">
                 <p className="font-semibold text-yellow-950 mb-1">
                   ℹ️ Keterangan:
                 </p>
                 <ul className="space-y-1 text-yellow-800">
-                  <li>
-                    • Live update akan menampilkan proses pencarian secara
-                    bertahap
-                  </li>
+                  <li>• Live update akan menampilkan proses secara bertahap</li>
                   <li>• Kecepatan dapat diatur selama proses pencarian</li>
-                  <li>
-                    • Visualisasi dapat memperlambat pencarian pada data yang
-                    besar
-                  </li>
+                  <li>• Jumlah dan batas resep dikunci ke 1</li>
                 </ul>
               </div>
             </div>
@@ -113,14 +141,22 @@ function SearchForm({ onSearch }) {
         </div>
         <hr className="border-yellow-700/20" />
         <div className="flex justify-between">
-          <strong className="text-yellow-950">Algoritma:</strong>{" "}
+          <strong className="text-yellow-950">Algoritma:</strong>
           <span>{formState.algorithm.toUpperCase()}</span>
+        </div>
+        <div className="flex justify-between">
+          <strong className="text-yellow-950">Batas (n):</strong>
+          <span>{liveUpdate ? 1 : formState.batas}</span>
+        </div>
+        <div className="flex justify-between">
+          <strong className="text-yellow-950">Jumlah ditampilkan:</strong>
+          <span>{liveUpdate ? 1 : formState.maxRecipes}</span>
         </div>
         {liveUpdate && (
           <>
             <hr className="border-yellow-700/20" />
             <div className="flex justify-between">
-              <strong className="text-yellow-950">Live Update:</strong>{" "}
+              <strong className="text-yellow-950">Live Update:</strong>
               <span className="text-green-700 font-semibold">Aktif</span>
             </div>
           </>

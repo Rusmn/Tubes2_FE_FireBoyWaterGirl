@@ -9,7 +9,6 @@ import Spinner from "./components/Spinner";
 import Book from "./components/Book";
 import RecipePagination from "./components/RecipePagination";
 import useRecipeSearch from "./hooks/useRecipeSearch";
-import useLiveUpdate from "./hooks/useLiveUpdate";
 import LiveUpdateVisualizer from "./components/LiveUpdateVisualizer";
 import paper from "./assets/paper1.png";
 import wood from "./assets/wood2.png";
@@ -21,7 +20,17 @@ function App() {
   const [viewMode, setViewMode] = useState("form");
   const [searchHistory, setSearchHistory] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { loading, error, results, currentSearch, search } = useRecipeSearch();
+  const {
+    loading,
+    error,
+    results,
+    currentSearch,
+    isLiveUpdating,
+    liveCombos,
+    search,
+    clearResults,
+  } = useRecipeSearch();
+
   const stableCombos = useMemo(() => results?.combos || [], [results]);
 
   const basicElements = useMemo(() => {
@@ -33,19 +42,6 @@ function App() {
   }, [stableCombos]);
 
   const [liveUpdateEnabled, setLiveUpdateEnabled] = useState(false);
-  const {
-    updateHistory,
-    currentStep,
-    isRunning,
-    partialCombos,
-    setUpdateSpeed,
-    stopLiveUpdate,
-  } = useLiveUpdate(
-    liveUpdateEnabled && currentSearch?.liveUpdate,
-    currentSearch?.algorithm,
-    currentSearch,
-    stableCombos
-  );
 
   const { allRecipeTrees, totalRecipePaths, totalRecipesUnfiltered } =
     useMemo(() => {
@@ -129,6 +125,13 @@ function App() {
       }
 
       const targetElement = currentSearch?.targetElement;
+      if (!targetElement)
+        return {
+          allRecipeTrees: [],
+          totalRecipePaths: 0,
+          totalRecipesUnfiltered: 0,
+        };
+
       if (BASIC_ELEMENTS.includes(targetElement)) {
         return {
           allRecipeTrees: [
@@ -139,6 +142,7 @@ function App() {
             },
           ],
           totalRecipePaths: 1,
+          totalRecipesUnfiltered: 1,
         };
       }
 
@@ -163,23 +167,12 @@ function App() {
       };
     }, [stableCombos, currentSearch?.targetElement]);
 
-  const isBasicTarget = useMemo(() => {
-    const allOutputs = new Set(stableCombos.map((c) => c.output));
-    const allInputs = new Set(
-      stableCombos.flatMap((c) => (Array.isArray(c.inputs) ? c.inputs : []))
-    );
-    const BASIC_ELEMENTS = [...allInputs].filter(
-      (input) => !allOutputs.has(input)
-    );
-    return BASIC_ELEMENTS.includes(currentSearch?.targetElement);
-  }, [stableCombos, currentSearch?.targetElement]);
+  const currentTreeData =
+    allRecipeTrees[currentIndex] || allRecipeTrees[0] || null;
 
   useEffect(() => {
     setCurrentIndex(0);
   }, [currentSearch, allRecipeTrees]);
-
-  const currentTreeData =
-    allRecipeTrees[currentIndex] || allRecipeTrees[0] || null;
 
   useEffect(() => {
     const saved = localStorage.getItem("searchHistory");
@@ -191,13 +184,14 @@ function App() {
   }, [searchHistory]);
 
   const handleSearch = (formData) => {
-    if (isRunning) stopLiveUpdate();
     const normalized = {
       ...formData,
       targetElement:
         formData.targetElement.charAt(0).toUpperCase() +
         formData.targetElement.slice(1).toLowerCase(),
+      maxRecipes: formData.liveUpdate ? 1 : formData.maxRecipes,
     };
+
     setSearchHistory((prev) => {
       const filtered = prev.filter(
         (item) =>
@@ -207,9 +201,10 @@ function App() {
       );
       return [normalized, ...filtered.slice(0, 4)];
     });
+
     search(normalized);
     setLiveUpdateEnabled(normalized.liveUpdate);
-    if (viewMode !== "split") setViewMode("results");
+    setViewMode("results");
   };
 
   const handlePathChange = (newIndex) => {
@@ -220,7 +215,7 @@ function App() {
 
   const renderForm = () => (
     <div
-      className="bg-cover p-6 rounded-xl shadow-xl"
+      className="bg-cover p-6 rounded-xl shadow-xl font-cinzel"
       style={{ backgroundImage: `url(${paper})` }}
     >
       <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
@@ -235,7 +230,7 @@ function App() {
 
   const renderResults = () => (
     <div
-      className="bg-cover p-6 rounded-xl shadow-xl"
+      className="bg-cover p-6 rounded-xl shadow-xl font-cinzel"
       style={{ backgroundImage: `url(${paper})` }}
     >
       {loading && <Spinner text="Sedang mencari recipe..." />}
@@ -267,16 +262,10 @@ function App() {
               totalRecipes={totalRecipesUnfiltered}
             />
           )}
-          {liveUpdateEnabled &&
-          currentSearch.liveUpdate &&
-          isRunning &&
-          partialCombos ? (
+          {liveUpdateEnabled && currentSearch.liveUpdate && isLiveUpdating ? (
             <LiveUpdateVisualizer
-              partialCombos={partialCombos}
+              partialCombos={liveCombos}
               targetElement={currentSearch.targetElement}
-              currentStep={currentStep}
-              setUpdateSpeed={setUpdateSpeed}
-              stopLiveUpdate={stopLiveUpdate}
             />
           ) : (
             <Suspense
@@ -322,8 +311,6 @@ function App() {
         viewMode={viewMode}
         setViewMode={setViewMode}
         currentSearch={currentSearch}
-        isRunningLiveUpdate={isRunning}
-        stopLiveUpdate={stopLiveUpdate}
       />
       <NavigationBreadcrumbs
         currentView={viewMode}

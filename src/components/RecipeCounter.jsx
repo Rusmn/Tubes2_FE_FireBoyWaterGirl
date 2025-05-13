@@ -11,9 +11,6 @@ function RecipeCounter({ value, onChange }) {
 
   return (
     <div className="font-merriweather text-yellow-900">
-      <label htmlFor="recipe-counter" className="block mb-2 font-semibold">
-        🔢 Jumlah Resep Maksimum:
-      </label>
       <div className="flex items-center">
         <button
           type="button"
