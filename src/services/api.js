@@ -1,65 +1,59 @@
-/**
- * API Service untuk berkomunikasi dengan backend Golang
- */
-
-// URL dasar untuk API, gunakan variabel lingkungan jika tersedia
-// atau gunakan localhost sebagai fallback
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+  `https://${import.meta.env.VITE_API_URL}`;
 
 /**
- * Mencari recipe untuk sebuah elemen target
- * @param {Object} params - Parameter pencarian
- * @param {string} params.targetElement - Elemen target yang dicari
- * @param {string} params.algorithm - Algoritma yang digunakan ('bfs', 'dfs', 'bidirectional')
- * @param {boolean} params.isMultiple - Apakah mencari multiple recipe
- * @param {number} params.maxRecipes - Jumlah maksimum recipe jika isMultiple=true
- * @returns {Promise} - Promise hasil pencarian
+ * Melakukan pencarian resep dari API backend
+ * @param {Object} params - Parameter pencarian dari form
+ * @param {string} params.targetElement - Elemen target
+ * @param {string} params.algorithm - Algoritma pencarian
+ * @param {number} params.n - Batas jumlah resep yang diambil dari API
  */
+
 export const searchRecipe = async (params) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/search`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        target_element: params.targetElement,
-        algorithm: params.algorithm,
-        multiple: params.isMultiple,
-        max_recipes: params.isMultiple ? params.maxRecipes : 1,
-      }),
-    });
+    const { targetElement, algorithm, n = 10 } = params; // default n = 10
+    const endpoint = `${API_BASE_URL}/${algorithm}/${targetElement}?n=${n}`;
+
+    const response = await fetch(endpoint);
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorText = await response.text();
       throw new Error(
-        errorData.message || "Terjadi kesalahan saat mencari recipe"
+        errorText ||
+          `Error ${response.status}: Terjadi kesalahan saat mencari recipe`
       );
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    const standardizedCombos = Array.isArray(data.combos)
+      ? data.combos.map((combo) => ({
+          id: combo.ID ?? combo.id,
+          parentId: combo.ParentId ?? combo.parentId,
+          inputs: combo.Inputs ?? combo.inputs,
+          output: combo.Output ?? combo.output,
+        }))
+      : null;
+
+    return {
+      combos: standardizedCombos,
+      stats: {
+        time: data.duration,
+        nodesVisited: data.nNode,
+      },
+    };
   } catch (error) {
     console.error("API Error:", error);
     throw error;
   }
 };
 
-/**
- * Mendapatkan daftar semua elemen yang tersedia
- * @returns {Promise<Array>} - Promise berisi array elemen
- */
-export const getAllElements = async () => {
+export const getElements = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/elements`);
-
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData.message || "Terjadi kesalahan saat mengambil daftar elemen"
-      );
+      throw new Error("Terjadi kesalahan saat mengambil daftar elemen");
     }
-
     return await response.json();
   } catch (error) {
     console.error("API Error:", error);
@@ -67,18 +61,12 @@ export const getAllElements = async () => {
   }
 };
 
-/**
- * Mendapatkan status server
- * @returns {Promise<Object>} - Promise berisi status server
- */
 export const getServerStatus = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/status`);
-
     if (!response.ok) {
       throw new Error("Server tidak dapat dijangkau");
     }
-
     return await response.json();
   } catch (error) {
     console.error("API Error:", error);
@@ -88,6 +76,6 @@ export const getServerStatus = async () => {
 
 export default {
   searchRecipe,
-  getAllElements,
+  getElements,
   getServerStatus,
 };

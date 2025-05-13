@@ -1,6 +1,6 @@
 import React from "react";
 
-function SearchMetadata({ searchParams }) {
+function SearchMetadata({ searchParams, currentPage, totalPages }) {
   if (!searchParams) return null;
 
   const metadataItemClasses =
@@ -25,17 +25,20 @@ function SearchMetadata({ searchParams }) {
           </span>
         </div>
         <div className={metadataItemClasses}>
-          <span className={labelClasses}>🧩 Mode:</span>
-          <span className={valueClasses}>
-            {searchParams.isMultiple ? "Multiple Recipes" : "Shortest Path"}
-          </span>
+          <span className={labelClasses}>🔢 Jumlah Resep Maksimum:</span>
+          <span className={valueClasses}>{searchParams.maxRecipes}</span>
         </div>
-        {searchParams.isMultiple && (
-          <div className={metadataItemClasses}>
-            <span className={labelClasses}>🔢 Max Recipes:</span>
-            <span className={valueClasses}>{searchParams.maxRecipes}</span>
-          </div>
-        )}
+
+        {currentPage !== undefined &&
+          totalPages !== undefined &&
+          totalPages > 1 && (
+            <div className={`${metadataItemClasses} md:col-span-4`}>
+              <span className={labelClasses}>📖 Resep:</span>
+              <span className={valueClasses}>
+                Menampilkan resep {currentPage} dari {totalPages} resep yang diminta
+              </span>
+            </div>
+          )}
       </div>
     </div>
   );

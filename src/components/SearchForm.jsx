@@ -1,29 +1,37 @@
 import React, { useState } from "react";
 import AlgorithmSelector from "./AlgorithmSelector";
 import ElementInput from "./ElementInput";
-import ModeToggle from "./ModeToggle";
 import RecipeCounter from "./RecipeCounter";
 import { DEFAULT_FORM_VALUES } from "../utils/Constants";
 
 function SearchForm({ onSearch }) {
-  const [formState, setFormState] = useState(DEFAULT_FORM_VALUES);
+  const [formState, setFormState] = useState({
+    ...DEFAULT_FORM_VALUES,
+    isMultiple: true,
+    maxRecipes: 5,
+    batas: 5,
+  });
   const [liveUpdate, setLiveUpdate] = useState(false);
 
   const handleChange = (field, value) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleModeToggle = (isMultiple) => {
-    setFormState((prev) => ({ ...prev, isMultiple }));
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formState.targetElement) return;
+
+    const safeBatas = formState.batas;
+    const safeMax = formState.maxRecipes;
+    const safeAlgorithm = formState.algorithm;
+
     onSearch({
       ...formState,
-      mode: formState.isMultiple ? "multiple" : "shortest",
+      algorithm: safeAlgorithm,
+      mode: "multiple",
       liveUpdate,
+      n: safeBatas,
+      maxRecipes: safeMax,
     });
   };
 
@@ -45,36 +53,62 @@ function SearchForm({ onSearch }) {
       />
 
       <div className={sectionWrapperClasses}>
-        <ModeToggle
-          isMultiple={formState.isMultiple}
-          onChange={handleModeToggle}
+        <label className="block mb-2 font-semibold text-yellow-900">
+          🔢 Jumlah Resep Maksimum:
+        </label>
+        <RecipeCounter
+          value={formState.maxRecipes}
+          onChange={(value) => handleChange("maxRecipes", value)}
+          disabled={liveUpdate}
         />
-        {formState.isMultiple && (
-          <RecipeCounter
-            value={formState.maxRecipes}
-            onChange={(value) => handleChange("maxRecipes", value)}
-          />
-        )}
+        <p className="text-xs text-yellow-700 italic mt-1">
+          Ini adalah jumlah maksimal resep yang akan divisualisasikan.
+        </p>
       </div>
 
       <div className={sectionWrapperClasses}>
-        <h3 className={sectionTitleClasses}>⚙️ Fitur Tambahan</h3>
-        <label className="flex items-center text-yellow-900 cursor-pointer group py-1">
-          <input
-            type="checkbox"
-            checked={liveUpdate}
-            onChange={(e) => setLiveUpdate(e.target.checked)}
-            className="mr-3 h-4 w-4 accent-yellow-700 rounded border-yellow-600/60 focus:ring-2 focus:ring-yellow-600 focus:ring-offset-2 focus:ring-offset-amber-50/60 transition shadow-sm"
-          />
-          <span className="text-sm font-nunitoSans group-hover:text-yellow-950">
-            Aktifkan Live Update Visualisasi
-          </span>
+        <label className="block mb-2 font-semibold text-yellow-900">
+          🛑 Batas Jumlah Resep dari API:
         </label>
-        {liveUpdate && (
-          <p className="text-xs text-yellow-800/90 mt-1 italic font-nunitoSans pl-7">
-            Visualisasi tree akan diperbarui secara bertahap selama pencarian.
-          </p>
-        )}
+        <RecipeCounter
+          value={formState.batas}
+          onChange={(value) => handleChange("batas", value)}
+          disabled={liveUpdate}
+        />
+        <p className="text-xs text-yellow-700 italic mt-1">
+          Ini adalah jumlah maksimal data yang akan diminta dari server.
+        </p>
+      </div>
+
+      <div className={sectionWrapperClasses}>
+        <h3 className={sectionTitleClasses}>⚙️ Live Update</h3>
+        <div className="space-y-3">
+          <label className="flex items-center text-yellow-900 cursor-pointer group py-1">
+            <input
+              type="checkbox"
+              checked={liveUpdate}
+              onChange={(e) => setLiveUpdate(e.target.checked)}
+              className="mr-3 h-4 w-4 accent-yellow-700 rounded border-yellow-600/60 focus:ring-2 focus:ring-yellow-600 focus:ring-offset-2 focus:ring-offset-amber-50/60 transition shadow-sm"
+            />
+            <span className="text-sm font-nunitoSans group-hover:text-yellow-950">
+              Aktifkan Live Update Visualisasi
+            </span>
+          </label>
+
+          {liveUpdate && (
+            <div className="ml-7 space-y-2">
+              <div className="bg-yellow-100/80 p-3 rounded-lg border border-yellow-600/30 text-xs">
+                <p className="font-semibold text-yellow-950 mb-1">
+                  ℹ️ Keterangan:
+                </p>
+                <ul className="space-y-1 text-yellow-800">
+                  <li>• Live update akan menampilkan proses secara bertahap</li>
+                  <li>• Resep akan ditampilkan setelah live update</li>
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <button
@@ -88,26 +122,32 @@ function SearchForm({ onSearch }) {
       >
         {!formState.targetElement
           ? "PILIH ELEMEN TARGET DAHULU"
-          : "🔍 CARI RESEP ALKIMIA"}
+          : "🔍 CARI RESEP"}
       </button>
 
       <div className="mt-6 p-3.5 bg-amber-50/50 text-xs text-yellow-950/80 border-2 border-yellow-700/20 rounded-xl shadow-md font-nunitoSans space-y-2 tracking-wide">
         <div className="flex justify-between">
           <strong className="text-yellow-950">Mode:</strong>
-          <span>
-            {formState.isMultiple ? "Multiple Recipes" : "Shortest Path"}
-          </span>
+          <span>Multiple Recipes</span>
         </div>
         <hr className="border-yellow-700/20" />
         <div className="flex justify-between">
-          <strong className="text-yellow-950">Algoritma:</strong>{" "}
+          <strong className="text-yellow-950">Algoritma:</strong>
           <span>{formState.algorithm.toUpperCase()}</span>
+        </div>
+        <div className="flex justify-between">
+          <strong className="text-yellow-950">Batas (n):</strong>
+          <span>{formState.batas}</span>
+        </div>
+        <div className="flex justify-between">
+          <strong className="text-yellow-950">Jumlah ditampilkan:</strong>
+          <span>{formState.maxRecipes}</span>
         </div>
         {liveUpdate && (
           <>
             <hr className="border-yellow-700/20" />
             <div className="flex justify-between">
-              <strong className="text-yellow-950">Live Update:</strong>{" "}
+              <strong className="text-yellow-950">Live Update:</strong>
               <span className="text-green-700 font-semibold">Aktif</span>
             </div>
           </>
